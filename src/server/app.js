@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var compress = require('compression');
 var cors = require('cors');
 var errorHandler = require('./routes/utils/errorHandler')();
+var cookieParser = require('cookie-parser');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var port = process.env.PORT || 7200;
@@ -16,10 +17,12 @@ var environment = process.env.NODE_ENV;
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(compress());            // Compress response data with gzip
 app.use(logger('dev'));
 app.use(favicon(__dirname + '/favicon.ico'));
 app.use(cors());                // enable ALL CORS requests
+
 app.use(errorHandler.init);
 // console.log("__dirname",__dirname);
 app.set('views','./src/client/');

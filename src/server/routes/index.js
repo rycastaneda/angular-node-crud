@@ -1,39 +1,61 @@
+var config = require(__dirname + '/../config/config')
+    mysql = require(__dirname + '/../lib/mysql'),
+    util = require(__dirname + '/../helpers/util');
+
 module.exports = function(app) {
     app.get('/', function(req, res) {
       console.log('req.cookies', req.cookies);
       console.log("__dirname",__dirname);
       if(req.cookies && req.cookies.eg_user) {
+        console.log("req.cookies.eg_user",req.cookies.eg_user, JSON.stringify(req.cookies.eg_user));
         res.render('index.jade', {
-            user: req.cookies.eg_user,
+            user: JSON.stringify(req.cookies.eg_user),
         });
       }
       else {
         res.render('index.jade', {
-            user: 'false hahaha',
+            user: false,
         });
       }
     });
+    // console.log("app.post",app.post);
+    app.post('/login', function(req, res, next) {
+        var data = util.get_data(['username', 'password'], ['staysignin'], req.body),
+            start = function () {
+                if(data.username && data.password) {
+                    return check_user(data);
+                }
 
-    app.get('/dashboard', function(req, res) {
-      console.log('req.cookies.access_token', req.cookies.access_token)
-      if(req.cookies.access_token) {
-        res.render('index.jade', {
-          module_name: 'user',
-          // public_dir: config.public_dir,
-          // public_dir_forced: config.public_dir_forced,
-          module_angular: 'ui.freedom'
+                return next('invalid data');
+            },
+            check_user = function () {
+                return mysql.open(config.DB)
+                    .query('Select * from user where username = ? and password = ?',
+                        [data.username, data.password],
+                        update_cookies
+                    );
+            },
+            update_cookies = function (err, result) {
+                if (err) {
+                    return next(err);
+                }
 
-        });
-      }
-      else {
-        res.render('index.jade', {
-          module_name: 'user',
-          // public_dir: config.public_dir,
-          // public_dir_forced: config.public_dir_forced,
-          module_angular: 'ui.freedom'
+                if ( ! result.length) {
+                    res.send('invalid password');
+                }
 
-        });
-      }
+                if (data.staysignin) {
+                    res.cookie('eg_user', result[0], { maxAge: 604800000, httpOnly: false});
+                    return res.send(result[0]);
+                }
+
+                res.cookie('eg_user', result[0], { httpOnly: false });
+                res.send(result[0]);
+            };
+
+        start();
+
+        // console.log("next",next);
     });
 
     app.get('/logout', function(req, res) {

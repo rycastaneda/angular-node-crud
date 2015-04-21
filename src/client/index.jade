@@ -25,6 +25,8 @@ body
         .progress.progress-striped.active.page-progress-bar
           .bar
 script.
-  var user = #{user};
+  var user = '#{user}';
+  var user2 = JSON.parse(#{user});
+
 script(src='/build/js/vendor.min.js')
 script(src='/build/js/scripts.min.js')
