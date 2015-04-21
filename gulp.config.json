@@ -10,6 +10,7 @@
     "./vendor/angular-animate/angular-animate.min.js",
     "./vendor/angular-bootstrap/ui-bootstrap.min.js",
     "./vendor/angular-moment/angular-moment.min.js",
+    "./vendor/angular-ui-router/release/angular-ui-router.min.js",
     "./vendor/moment/min/moment.min.js"
   ],
   "vendorcss": [

@@ -7,13 +7,13 @@
 
 
     // ngInject
-    function Shell($timeout) {
+    function Shell($timeout, $state) {
         /*jshint validthis: true */
         var vm = this;
         vm.busyMessage = 'Please wait ...';
         vm.isBusy = true;
         vm.showSplash = true;
-
+        console.log("vm.busyMessage",vm.busyMessage);
         activate();
 
         function activate() {
@@ -29,7 +29,13 @@
             //Force a 1 second delay so we can see the splash.
             $timeout(function() {
                 vm.showSplash = false;
+
+                if(! user) {
+                    $state.go('login');
+                }
             }, 1000);
         }
+
+
     }
 })();

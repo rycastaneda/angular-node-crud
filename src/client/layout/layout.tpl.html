@@ -3,11 +3,12 @@
         <div data-ng-include="'layout/topbar.tpl.html'"></div>
     </header>
     <section id="content" class="content">
-        <div data-ng-include="'layout/sidebar.tpl.html'"></div>
-        <div ui-view></div>
+        <a class="brand" ui-sref="login">Quick Start</a>
+        <!-- <div data-ng-include="'layout/sidebar.tpl.html'"></div> -->
+        <div ui-view="main"></div>
 
-        <div id="splash-page" data-ng-show="vm.showSplash" class="dissolve-animation">
-            <h1>LOADING</h1>
+        <div id="splash-page" data-ng-show="vm.showSplash" class="text-center">
+            <i class="fa fa-spinner fa-spin fa-3x"></i>
         </div>
 
     </section>

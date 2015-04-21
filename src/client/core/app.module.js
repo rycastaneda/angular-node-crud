@@ -1,5 +1,12 @@
 (function () {
     'use strict';
     angular
-        .module('app', ['app.layout']);
+        .module('app', [
+            'ui.router',
+            'blocks',
+            'app.layout',
+            'app.login',
+        ]);
+
+
 })();

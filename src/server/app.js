@@ -21,7 +21,8 @@ app.use(logger('dev'));
 app.use(favicon(__dirname + '/favicon.ico'));
 app.use(cors());                // enable ALL CORS requests
 app.use(errorHandler.init);
-
+// console.log("__dirname",__dirname);
+app.set('views','./src/client/');
 routes = require('./routes/index')(app);
 
 console.log('About to crank up node');
