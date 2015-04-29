@@ -7,31 +7,32 @@
 
 
     // ngInject
-    function Shell($timeout, $state) {
+    function Shell($timeout, $rootScope, $state, userService) {
         /*jshint validthis: true */
         var vm = this;
-        vm.busyMessage = 'Please wait ...';
-        vm.isBusy = true;
         vm.showSplash = true;
-        console.log("vm.busyMessage",vm.busyMessage);
+        vm.user = userService.user;
+
         activate();
 
+        $rootScope.$on('logged', function (event, data) {
+            vm.user = data;
+        });
         function activate() {
-            // logger.success(' loaded!', null);
-//            Using a resolver on all routes or dataservice.ready in every controller
-//            dataservice.ready().then(function(){
-//                hideSplash();
-//            });
             hideSplash();
         }
 
         function hideSplash() {
-            //Force a 1 second delay so we can see the splash.
             $timeout(function() {
                 vm.showSplash = false;
-
                 if(! user) {
-                    $state.go('login');
+                    return $state.go('login');
+                }
+
+                if(!$state.current.name) {
+                    vm.user = user;
+                    userService.user = user;
+                    return $state.go('home');
                 }
             }, 1000);
         }

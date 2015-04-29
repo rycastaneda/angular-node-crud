@@ -1,0 +1,86 @@
+<div class="modal-header">
+    <button type="button" class="close" ng-click="close()"  aria-hidden="true">&times;</button>
+    <h4 class="modal-title">{{mode.toUpperCase()}} RECEIPT</h4>
+</div>
+<form class="form-horizontal" ng-submit="save_receipt()" cg-busy="saving">
+    <div class="modal-body">
+        <div class="form-group">
+            <label for="name" class="control-label col-xs-2">Name *</label>
+            <div class="col-xs-10">
+                <input type="text" class="form-control" id="name" placeholder="Enter name" ng-model="data.name" required="true">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="share_type" class="control-label col-xs-2">Share Type *</label>
+            <div class="col-xs-10">
+                <select class="form-control" ng-options="item as item for item in ['Solo', 'Fast Track', 'Patak Patak']" ng-change="share_changed()" ng-model="data.share_type"></select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="share_amount" class="control-label col-xs-2">Share Amount *</label>
+            <div class="col-xs-10">
+                <input type="number" class="form-control" id="share_amount" min="1" max="10" ng-model="data.share_amount" placeholder="Enter share amount" ng-disabled="share_amount_disabled" required="true">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="amount" class="control-label col-xs-2">Amount *</label>
+            <div class="col-xs-10">
+                <input type="number" min="1" class="form-control" id="amount" ng-model="data.amount" placeholder="Enter amount" required="true">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="bank" class="control-label col-xs-2">Bank *</label>
+            <div class="col-xs-10">
+                <input type="text" class="form-control" id="bank" ng-model="data.bank" placeholder="Enter bank name." required="true">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="referrence" class="control-label col-xs-2">Referrence Number *</label>
+            <div class="col-xs-10">
+                <input type="text" class="form-control" id="referrence" ng-model="data.reference_number" placeholder="Enter referrence number." required="true">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="referrer" class="control-label col-xs-2">Referrer *</label>
+            <div class="col-xs-10">
+                <input type="text" class="form-control" id="referrer" ng-model="data.referrer" placeholder="Enter referrer." required="true">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="dp" class="control-label col-xs-2" style="padding: 40px 12px;">Date *</label>
+            <div class="col-xs-5">
+                <table>
+                    <tr>
+                        <td style="padding: 7px 12px;">&nbsp;</td>
+                        <td style="padding: 7px 12px;">&nbsp;</td>
+                        <td style="padding: 7px 12px;">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <p class="input-group">
+                                <input type="text" id="dp" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="data.date"
+                                is-open="opened" ng-required="true" close-text="Close" max-date="max_date"/>
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-xs-5">
+                <p class="input-group">
+                    <timepicker ng-model="data.time" ng-change="changed()" hour-step="1" minute-step="15" show-meridian="true"></timepicker>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <input type="hidden" name ="action" value ='move_to_network'/>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-default" ng-click="close()">Cancel</button>
+    </div>
+</form>
