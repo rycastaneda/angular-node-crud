@@ -1,0 +1,79 @@
+<div class="home">
+    <div class="row">
+        <div class="col-md-8">
+            <form ng-submit="vm.get_receipts(vm.q, vm.filter, vm.start_date, vm.end_date)" class="form-inline">
+                <div class="input-group">
+                    <input type="search" class="form-control" ng-model="vm.q" placeholder="Search">
+                    <div class="input-group-btn" ng-class="{'open' : vm.search_cat} ">
+                        <button ng-click="vm.search_cat = !vm.search_cat;" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{{vm.filter}}<span class="caret"></span></button>
+                        <ul class="dropdown-menu dropdown-menu-right" role="menu" id="dropdown">
+                            <li ng-repeat="filter in vm.filters"><a href="" ng-bind="filter" ng-click="vm.filter = filter; vm.search_cat = !vm.search_cat;"></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <button class="pull-right btn btn-primary" ng-click="vm.open_receipt('add')">Add Record</button>
+        </div>
+
+
+    </div>
+
+    <div class="row">
+        <div class="col-xs-6">
+            <label for="">Start Date:</label>
+            <p class="input-group">
+                <input type="text" id="dp" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="vm.start_date"
+                is-open="vm.opened_start" ng-required="true" close-text="Close" max-date="max_date" ng-change="vm.date_changed()"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="vm.open_start($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                </span>
+            </p>
+        </div>
+
+        <div class="col-xs-6">
+            <label for="">End Date:</label>
+            <p class="input-group">
+                <input type="text" id="dp" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="vm.end_date"
+                is-open="vm.opened_end" ng-required="true" close-text="Close" max-date="max_date" ng-change="vm.date_changed()"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="vm.open_end($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                </span>
+            </p>
+        </div>
+
+        <div class="col-xs-12">
+            <table cg-busy="vm.getting" class="table">
+                <th>ID</th>
+                <th>Name</th>
+                <th>Bank</th>
+                <th>Amount</th>
+                <th>Ref. Number</th>
+                <th>Referrer</th>
+                <th>Date</th>
+                <th>Share Type</th>
+                <th>Share Amount</th>
+                <th></th>
+                <tr ng-repeat="receipt in vm.receipts">
+                    <td ng-bind="receipt.id"></td>
+                    <td ng-bind="receipt.name"></td>
+                    <td ng-bind="receipt.bank"></td>
+                    <td ng-bind="receipt.amount"></td>
+                    <td ng-bind="receipt.reference_number"></td>
+                    <td ng-bind="receipt.referrer"></td>
+                    <td ng-bind="receipt.date | amDateFormat: 'MMMM DD, YYYY hh:mm a'"></td>
+                    <td ng-bind="receipt.share_type"></td>
+                    <td ng-bind="receipt.share_amount"></td>
+                    <td>
+                        <button class="btn btn-default" ng-click="vm.open_receipt('update', receipt)">View</button>
+                    </td>
+                </tr>
+                <tr ng-show="!vm.receipts.length">
+                    <td class="text-center" colspan="10">No receipts found.</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>

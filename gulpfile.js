@@ -62,7 +62,13 @@ var config      = require('./gulp.config.json'),
             .pipe(rename('scripts.min.js'))
             .pipe(sourcemaps.write('../maps'))
             .pipe(gulp.dest('build/js'))
-            .pipe(notify({ message: 'JS task complete' }));
+            .pipe(notify({ message: 'JS task complete' }));;
+    });
+
+    gulp.task('fonts', function() {
+        return gulp
+            .src(config.fonts)
+            .pipe(gulp.dest('build/fonts'));
     });
 
     gulp.task('sass', function() {
@@ -108,7 +114,7 @@ var config      = require('./gulp.config.json'),
             .pipe(gulp.dest('build'));
     });
 
-    gulp.task('serve-dev', ['sass', 'js', 'templates', 'vendorcss', 'vendorjs', 'inject'], function() {
+    gulp.task('watchers', function() {
         env = 'development';
 
         serve({
@@ -127,6 +133,9 @@ var config      = require('./gulp.config.json'),
         gulp.watch(config.html).on('change', reload);
 
     });
+
+    gulp.task('serve-dev', ['sass', 'js', 'templates', 'vendorcss', 'vendorjs', 'fonts', 'inject', 'watchers']);
+
 
     gulp.task('serve-production', ['sass', 'vendorcss', 'inject'], function() {
         env = 'production';

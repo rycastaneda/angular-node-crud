@@ -8,13 +8,11 @@
 
     function config( $stateProvider ) {
         $stateProvider.state( 'login', {
-            // abstract: true,
             url: '/login',
             views: {
                 "main": {
                     controller: 'Login',
                     controllerAs: 'vm',
-                    // templateUrl: 'src/client/login/template.tpl.html',
                     templateUrl: 'login/template.tpl.html'
                 }
             }
@@ -22,17 +20,24 @@
     }
     config.$inject = ["$stateProvider"];
 
-    function Login () {
+    //@ngInject;
+    function Login ($state, $scope, $rootScope, growl, userService, helpers) {
         var vm = this;
-
-        vm.news = {
-            title: 'Marvel Avengers',
-            description: 'Marvel Avengers 2 is now in production!'
+        vm.submit_login = submit_login;
+        vm.data = {
+            username : '',
+            password : '',
+            stay : false
         };
-        vm.avengerCount = 0;
-        vm.avengers = [];
-        vm.title = 'Login';
 
-        console.log("vm.title",vm.title);
+        function submit_login () {
+            vm.login_loading = userService.login(vm.data).then(function (user) {
+                $scope.$emit('logged', user.id);
+                userService.user = user;
+                $state.go('home');
+            }, function (data) {
+                growl.error(data);
+            });
+        }
     }
 })();

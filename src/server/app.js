@@ -60,6 +60,9 @@ switch (environment){
         break;
 }
 
+app.use(require(__dirname + '/lib/error_handler')());
+
+
 app.listen(port, function() {
     console.log('Express server listening on port ' + port);
     console.log('env = ' + app.get('env') +

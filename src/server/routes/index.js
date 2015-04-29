@@ -4,33 +4,30 @@ var config = require(__dirname + '/../config/config')
 
 module.exports = function(app) {
     app.get('/', function(req, res) {
-      console.log('req.cookies', req.cookies);
-      console.log("__dirname",__dirname);
-      if(req.cookies && req.cookies.eg_user) {
-        console.log("req.cookies.eg_user",req.cookies.eg_user, JSON.stringify(req.cookies.eg_user));
-        res.render('index.jade', {
-            user: JSON.stringify(req.cookies.eg_user),
-        });
-      }
-      else {
-        res.render('index.jade', {
-            user: false,
-        });
-      }
+        if(req.cookies && req.cookies.eg_user) {
+            res.render('index.jade', {
+                user: req.cookies.eg_user,
+            });
+        }
+        else {
+            res.render('index.jade', {
+                user: false,
+            });
+        }
     });
-    // console.log("app.post",app.post);
+
     app.post('/login', function(req, res, next) {
-        var data = util.get_data(['username', 'password'], ['staysignin'], req.body),
+        var data = util.get_data(['username', 'password'], ['stay'], req.body),
             start = function () {
                 if(data.username && data.password) {
                     return check_user(data);
                 }
 
-                return next('invalid data');
+                return next({message:'Invalid data request.', err: 'DATA_ERROR'});
             },
             check_user = function () {
                 return mysql.open(config.DB)
-                    .query('Select * from user where username = ? and password = ?',
+                    .query('Select id from user where username = ? and password = ?',
                         [data.username, data.password],
                         update_cookies
                     );
@@ -41,45 +38,259 @@ module.exports = function(app) {
                 }
 
                 if ( ! result.length) {
-                    res.send('invalid password');
+                    return next({message:'Incorrect password. Please try again.', err: 'AUTH_ERROR'});
                 }
 
-                if (data.staysignin) {
-                    res.cookie('eg_user', result[0], { maxAge: 604800000, httpOnly: false});
+                if (data.stay) {
+                    res.cookie('eg_user', result[0].id, { maxAge: 604800000, httpOnly: false});
                     return res.send(result[0]);
                 }
 
-                res.cookie('eg_user', result[0], { httpOnly: false });
+                res.cookie('eg_user', result[0].id, { httpOnly: false });
                 res.send(result[0]);
             };
 
         start();
-
-        // console.log("next",next);
     });
+
+
+
 
     app.get('/logout', function(req, res) {
-        if(req.cookies.access_token) {
-          var access_token = req.cookies.access_token;
-          var http = require('http');
-          var options = {};
-          var url = '';
-          var req = http.request( {host: backend_server_url, port: backend_server_port, path: '/logout', method: 'GET', headers: {'X-ACCESS-TOKEN': access_token}}, function(response) {
-            console.log('RESPONSE: ' + response.statusCode);
-            if(response.statusCode) {
-              res.clearCookie('access_token');
-              res.redirect('/logout');
-            }
-            // console.log('Problem with request: ' + e.message);
-          });req.end();
+        if(req.cookies.eg_user) {
+            res.clearCookie('eg_user');
+            res.redirect('/');
         }
         else {
-          if (req.query.message) res.redirect('/error?message=' + req.query.message);
-          else res.redirect('/');
+            res.redirect('/');
         }
     });
 
+    app.post('/receipt', function(req, res, next) {
+        var data = util.get_data([
+                    'name', 'bank', 'amount',
+                    'reference_number', 'date', 'share_type',
+                    'share_amount', 'user_id', 'reference_number', 'referrer'],
+                    [], req.body),
+            start = function () {
+                return check_dups();
+            },
+            check_dups = function () {
+                console.log("data",data);
+                return mysql.open(config.DB)
+                    .query('SELECT id FROM receipt where date = ?',
+                        data.date,
+                        save
+                    );
+            },
+            save = function (err, result) {
+                if (err) {
+                    console.log("err1",err);
+                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                }
+                console.log("result",result);
 
+                if (result.length) {
+                    return next({
+                        message: 'Receipt with date already exists.',
+                        data: result, err: 'DATA_DUPES'
+                    });
+                }
+
+                return mysql.open(config.DB)
+                    .query('INSERT INTO receipt SET ?',
+                        data,
+                        done
+                    );
+            },
+            done = function (err, result) {
+                if (err) {
+                    console.log("err2",err);
+                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                }
+
+                res.send({message: 'Receipt successfully saved'});
+            };
+
+        start();
+
+    });
+
+    app.put('/receipt/:id', function(req, res, next) {
+        var data = util.get_data([
+                    'name', 'bank', 'amount',
+                    'reference_number', 'date', 'share_type',
+                    'share_amount', 'user_id', 'reference_number', 'referrer'],
+                    [], req.body),
+            start = function () {
+                return update_receipt();
+            },
+            update_receipt = function () {
+
+                return mysql.open(config.DB)
+                    .query('UPDATE receipt SET ? WHERE id = ?',
+                        [data, req.params.id],
+                        done
+                    );
+            },
+            done = function (err, result) {
+                if (err) {
+                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                }
+
+                res.send({message: 'Receipt successfully updated'});
+            };
+        start();
+    });
+
+    app.get('/receipt/:id', function (req, res, next) {
+        var start = function () {
+                console.log("req",req.params);
+                if(!req.params.id) {
+                    return next({message: 'No id found.', err: 'DATA_ERROR'});
+                }
+
+                return get_receipt();
+            },
+            get_receipt = function () {
+                return mysql.open(config.DB)
+                    .query('SELECT * FROM receipt WHERE id = ? LIMIT 1',
+                        req.params.id,
+                        done
+                    );
+
+            },
+            done = function (err, result) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (!result.length) {
+                    return next({message: 'No receipt found on database.', err: 'NO_DATA'});
+                }
+
+                res.send(result[0]);
+            };
+
+        start();
+    });
+
+    app.get('/receipts', function (req, res, next) {
+        var data = util.get_data([], ['q','category', 'page', 'start_date', 'end_date'], req.query),
+            valid_category = ['share_type', 'reference_number', 'referrer', 'id'],
+            start = function () {
+                data.page = +data.page || 1;
+                data.limit = 25;
+                console.log("req.cookies",req.cookies);
+                if(!req.cookies.eg_user) {
+                    return next({message: 'Please login first.', err: 'AUTH_REQUIRED'});
+                }
+
+                if (data.category) {
+                    return search();
+                }
+
+                return search_all();
+            },
+            search = function () {
+                var where = '',
+                    params = [data.q, req.cookies.eg_user, (data.page - 1) * data.limit, data.limit],
+                    start;
+
+                if(!!~valid_category.indexOf(data.category)) {
+                    return next({message: 'Invalid category.', err: 'PARAM_ERROR'});
+                }
+
+                switch (data.category) {
+                    case 'date' :
+                        where = 'WHERE date > ? AND date < ?';
+                        params = [+new Date(data.start_date), +new Date(data.end_date), req.cookies.eg_user, (data.page - 1) * data.limit, data.limit,];
+                        break;
+                    case 'share_type':
+                    case 'id':
+                    case 'reference_number':
+                    case 'referrer':
+                        where = 'WHERE ' + data.category + ' = ?';
+                        break;
+                }
+
+                where += ' AND user_id = ?';
+
+                console.log("where",where);
+                console.log("params",params);
+
+                return mysql.open(config.DB)
+                    .query('SELECT * FROM receipt ' + where + ' LIMIT ?, ?',
+                        params,
+                        done
+                    );
+            },
+            search_all = function () {
+                if(!data.q) {
+                    return search_user_receipts();
+                }
+
+                data.q = '%' + data.q + '%';
+
+                console.log("data.q",data.q);
+                return mysql.open(config.DB)
+                    .query('SELECT * FROM receipt where user_id = ? AND (name like ? OR reference_number like ? OR referrer like ?) LIMIT ?, ?',
+                        [req.cookies.eg_user, data.q, data.q, data.q, (data.page - 1) * data.limit, data.limit,],
+                        done
+                    );
+            },
+
+            search_user_receipts = function () {
+                return mysql.open(config.DB)
+                    .query('SELECT * FROM receipt where user_id = ?',
+                        [req.cookies.eg_user],
+                        done
+                    );
+            }
+
+            done = function (err, results) {
+                if (err) {
+                    return next(err);
+                }
+                console.log("results",results);
+                if (!results.length) {
+                    return next({message: 'No receipts found on database.', err: 'NO_DATA'});
+                }
+
+                res.send(results);
+            };
+
+        start();
+
+    });
+    app.delete('/receipt', function (req, res, next) {
+        var data = util.get_data(['id'], [], req.body),
+            start = function () {
+                console.log("data",data);
+                return delete_receipt();
+            },
+            delete_receipt = function () {
+                return mysql.open(config.DB)
+                    .query('DELETE FROM receipt WHERE id = ?',
+                        data.id,
+                        done
+                    );
+            },
+            done = function (err, results) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (!results.affectedRows) {
+                    return next({message: 'No receipts found on database.', err: 'SQL_ERROR'});
+                }
+
+                res.send({message : 'Receipt deleted successfully.'});
+            };
+
+        start();
+
+    });
 
     app.get('/api/maa', getMaa);
 

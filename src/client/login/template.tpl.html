@@ -1,23 +1,19 @@
 <div class="login-form">
-    <form>
-      <div class="form-group">
-        <label for="exampleInputEmail1">Email address</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
-      </div>
-      <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-      </div>
-      <div class="form-group">
-        <label for="exampleInputFile">File input</label>
-        <input type="file" id="exampleInputFile">
-        <p class="help-block">Example block-level help text here.</p>
-      </div>
-      <div class="checkbox">
-        <label>
-          <input type="checkbox"> Check me out
-        </label>
-      </div>
-      <button type="submit" class="btn btn-default">Submit</button>
+    <form ng-submit="vm.submit_login()" cg-busy="vm.login_loading">
+        <div></div>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" placeholder="Enter username" ng-model="vm.data.username">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Password" ng-model="vm.data.password">
+        </div>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" ng-model ="vm.data.stay"> Remember Me
+            </label>
+        </div>
+        <button type="submit" class="btn btn-default" ng-click="submit_login()">Submit</button>
     </form>
 </div>
