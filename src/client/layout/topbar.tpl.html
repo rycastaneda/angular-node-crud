@@ -1,6 +1,14 @@
 ﻿<nav class="navbar navbar-inverse">
     <div class="navbar-header">
-        <a href="/" class="navbar-brand"><span class="brand-title">WELCOME <span ng-bind="vm.user_data.name"></span></span></a>
+        <a href="/" class="navbar-brand">
+            <span class="brand-title" ng-if="vm.user">WELCOME
+                <span ng-bind="vm.user_data.name"></span>
+            </span>
+
+            <span class="brand-title" ng-if="!vm.user">
+                LOGIN
+            </span>
+        </a>
         <a class="btn navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>

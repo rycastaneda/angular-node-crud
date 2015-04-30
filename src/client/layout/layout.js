@@ -11,12 +11,15 @@
         /*jshint validthis: true */
         var vm = this;
         vm.showSplash = true;
+        vm.show_growl = true;
         vm.user = userService.user;
 
         activate();
 
         $rootScope.$on('logged', function (event, data) {
             vm.user = data;
+            vm.show_growl = false;
+            get_user();
         });
 
 
@@ -39,11 +42,17 @@
             }, 1000);
         }
 
-        userService.get_current_user().then(function (data) {
-            vm.user_data = data;
-        }, function () {
-            return $state.go('login');
-        });
+        function get_user () {
+            userService.get_current_user().then(function (data) {
+                vm.user_data = data;
+                console.log("vm.user_data",vm.user_data);
+            }, function () {
+                return $state.go('login');
+            });
+        }
 
+        if (user) {
+            get_user();
+        }
     }
 })();

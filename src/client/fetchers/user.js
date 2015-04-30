@@ -15,7 +15,7 @@
         function login (data) {
             request = $http({
                 method: 'POST',
-                url: rest.api_base + '/login',
+                url: '/login',
                 headers: rest.custom_headers,
                 data : helpers.serialize(data)
             });

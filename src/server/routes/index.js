@@ -20,6 +20,54 @@ module.exports = function(app) {
         }
     });
 
+    app.post('/login', function(req, res, next) {
+        var data = util.get_data(['username', 'password'], ['stay'], req.body),
+            start = function () {
+                console.log("data",data);
+                if(data.username && data.password) {
+                    return check_user(data);
+                }
+
+                return next({message:'Invalid data request.', err: 'DATA_ERROR'});
+            },
+            check_user = function () {
+                return mysql.open(config.DB)
+                    .query('Select id from user where username = ? and password = ?',
+                        [data.username, data.password],
+                        update_cookies
+                    );
+            },
+            update_cookies = function (err, result) {
+                if (err) {
+                    return next(err);
+                }
+
+                if ( ! result.length) {
+                    return next({message:'Incorrect password. Please try again.', err: 'AUTH_ERROR'});
+                }
+
+                if (data.stay) {
+                    res.cookie('eg_user', result[0].id, { maxAge: 604800000, httpOnly: false});
+                    return res.send(result[0]);
+                }
+
+                res.cookie('eg_user', result[0].id, { httpOnly: false });
+                res.send(result[0]);
+            };
+
+        start();
+    });
+
+    app.get('/logout', function(req, res) {
+        if(req.cookies.eg_user) {
+            res.clearCookie('eg_user');
+            res.redirect('/');
+        }
+        else {
+            res.redirect('/');
+        }
+    });
+
     app.use('/api/*', function (req, res, next) {
        if(!req.cookies.eg_user) {
             res.status(400);
@@ -66,53 +114,6 @@ module.exports = function(app) {
             };
 
         start();
-    });
-
-    app.post('/api/login', function(req, res, next) {
-        var data = util.get_data(['username', 'password'], ['stay'], req.body),
-            start = function () {
-                if(data.username && data.password) {
-                    return check_user(data);
-                }
-
-                return next({message:'Invalid data request.', err: 'DATA_ERROR'});
-            },
-            check_user = function () {
-                return mysql.open(config.DB)
-                    .query('Select id from user where username = ? and password = ?',
-                        [data.username, data.password],
-                        update_cookies
-                    );
-            },
-            update_cookies = function (err, result) {
-                if (err) {
-                    return next(err);
-                }
-
-                if ( ! result.length) {
-                    return next({message:'Incorrect password. Please try again.', err: 'AUTH_ERROR'});
-                }
-
-                if (data.stay) {
-                    res.cookie('eg_user', result[0].id, { maxAge: 604800000, httpOnly: false});
-                    return res.send(result[0]);
-                }
-
-                res.cookie('eg_user', result[0].id, { httpOnly: false });
-                res.send(result[0]);
-            };
-
-        start();
-    });
-
-    app.get('/api/logout', function(req, res) {
-        if(req.cookies.eg_user) {
-            res.clearCookie('eg_user');
-            res.redirect('/');
-        }
-        else {
-            res.redirect('/');
-        }
     });
 
     app.post('/api/receipt', function(req, res, next) {

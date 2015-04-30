@@ -2,14 +2,10 @@
     <header>
         <div data-ng-include="'layout/topbar.tpl.html'"></div>
     </header>
-    <section id="content" class="container">
-        <div growl inline="true"></div>
-        <!-- <div data-ng-include="'layout/sidebar.tpl.html'"></div> -->
+    <section id="content" class="container" ng-hide="vm.showSplash">
         <div ui-view="main"></div>
-
-        <div id="splash-page" data-ng-show="vm.showSplash" class="text-center">
-            <i class="fa fa-spinner fa-spin fa-3x"></i>
-        </div>
-
     </section>
+    <div id="splash-page" ng-show="vm.showSplash" class="text-center">
+        <i class="fa fa-spinner fa-spin fa-3x"></i>
+    </div>
 </div>

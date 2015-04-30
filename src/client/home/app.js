@@ -28,15 +28,12 @@
             today = date.format('YYYY-MM-DD'),
             vm = this;
 
-        vm.add_form = false;
-
         vm.current_page = 1;
         vm.search_cat = false;
         vm.filters =  ['All', 'Referrer', 'Name', 'ID'];
         vm.filter = vm.filters[0];
         vm.receipts = [];
         vm.max_date = date.format('YYYY-MM-DD');
-
         vm.start_date = date.format('YYYY-MM-DD');
         vm.end_date = date.add(1, 'days').format('YYYY-MM-DD');
 
@@ -46,6 +43,8 @@
         vm.get_receipts = get_receipts;
         vm.delete_receipt = delete_receipt;
         vm.open_receipt = open_receipt;
+
+        console.log("growl",growl);
 
         function open_start ($event) {
            $event.preventDefault();
