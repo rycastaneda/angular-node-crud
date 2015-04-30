@@ -14,6 +14,7 @@
             custom_headers : {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
+            api_base : '/api',
             handle_error : handle_error,
             handle_success : handle_success,
         };
@@ -23,7 +24,7 @@
                 return( $q.reject( 'An unknown error occurred.' ) );
             }
 
-            return( $q.reject( response.data.message ) );
+            return( $q.reject( response.data ) );
         }
 
         function handle_success ( res ) {

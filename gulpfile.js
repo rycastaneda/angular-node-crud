@@ -137,7 +137,7 @@ var config      = require('./gulp.config.json'),
     gulp.task('serve-dev', ['sass', 'js', 'templates', 'vendorcss', 'vendorjs', 'fonts', 'inject', 'watchers']);
 
 
-    gulp.task('serve-production', ['sass', 'vendorcss', 'inject'], function() {
+    gulp.task('serve-production', ['sass', 'js', 'templates', 'vendorcss', 'vendorjs', 'fonts', 'inject'], function() {
         env = 'production';
 
         serve({

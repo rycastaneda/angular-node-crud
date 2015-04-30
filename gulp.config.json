@@ -24,7 +24,8 @@
   ],
   "allcss": [
     "./src/client/content/*.css",
-    "./src/client/content/*.sass"
+    "./src/client/content/*.sass",
+    "./src/client/content/*.scss"
   ],
   "css": [
     "./src/client/content/*.css"

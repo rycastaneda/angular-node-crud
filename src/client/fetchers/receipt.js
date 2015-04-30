@@ -17,7 +17,7 @@
         function add_receipt (data) {
             request = $http({
                 method: 'POST',
-                url: '/receipt',
+                url: rest.api_base + '/receipt',
                 headers: rest.custom_headers,
                 data : helpers.serialize(data)
             });
@@ -27,9 +27,7 @@
         function get_receipts (data) {
             request = $http({
                 method: 'GET',
-                url: '/receipts?' + helpers.serialize(data)
-                // headers: rest.custom_headers,
-                // data : helpers.serialize(data)
+                url: rest.api_base + '/receipts?' + helpers.serialize(data)
             });
             return( request.then( rest.handle_success, rest.handle_error ) );
         }
@@ -37,7 +35,7 @@
         function update_receipt (data) {
             request = $http({
                 method: 'PUT',
-                url: '/receipt/' + data.id,
+                url: rest.api_base + '/receipt/' + data.id,
                 headers: rest.custom_headers,
                 data : helpers.serialize(data)
             });
@@ -47,7 +45,7 @@
         function delete_receipt (receipt_id) {
             request = $http({
                 method: 'DELETE',
-                url: '/receipt/' + receipt_id,
+                url: rest.api_base + '/receipt/' + receipt_id,
                 headers: rest.custom_headers,
             });
             return( request.then( rest.handle_success, rest.handle_error ) );

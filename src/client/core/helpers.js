@@ -7,8 +7,22 @@
 
     function helpers () {
         return {
+            extend : extend,
             serialize : serialize
+
         };
+
+        function extend (obj, source) {
+            var prop;
+
+            for (prop in source) {
+                if (source.hasOwnProperty(prop)) {
+                   obj[prop] = source[prop];
+                }
+            }
+
+            return obj;
+        }
 
         function serialize (obj) {
             var str = [];

@@ -4,19 +4,71 @@ var config = require(__dirname + '/../config/config')
 
 module.exports = function(app) {
     app.get('/', function(req, res) {
+        var index = (process.env.NODE_ENV === 'development') ? '-dev' : '';
+        console.log("index",index);
+        console.log("process.env.NODE_ENV",process.env.NODE_ENV);
+
         if(req.cookies && req.cookies.eg_user) {
-            res.render('index.jade', {
+            res.render('index' + index + '.jade', {
                 user: req.cookies.eg_user,
             });
         }
         else {
-            res.render('index.jade', {
+            res.render('index' + index + '.jade', {
                 user: false,
             });
         }
     });
 
-    app.post('/login', function(req, res, next) {
+    app.use('/api/*', function (req, res, next) {
+       if(!req.cookies.eg_user) {
+            res.status(400);
+            return res.send({message: 'Please login first.', err: 'AUTH_REQUIRED'});
+       }
+
+        mysql.open(config.DB)
+            .query('Select id from user where id = ?',
+                req.cookies.eg_user,
+                sql_result
+            );
+        function sql_result (err, result) {
+
+            if (err) {
+                res.status(400);
+                return res.send({message: 'DATABASE ERROR', err: 'SQL_ERROR'});
+            }
+
+            if (result.length) {
+                console.log("result",result);
+                return next();
+            }
+
+            res.status(400);
+            return res.send({message: 'INVALID COOKIE', err: 'COOKIE_ERROR'});
+
+        }
+    });
+
+    app.get('/api/user', function(req, res) {
+        var start = function () {
+            return mysql.open(config.DB)
+                .query('Select name, email from user where id = ?',
+                    req.cookies.eg_user,
+                    done
+                );
+            },
+            done = function (err, result) {
+                if(err) {
+                    return next({message: 'Something went wrong. Please try again', err: 'SQL_ERROR'});
+                }
+
+                res.send(result[0]);
+            };
+
+        start();
+    });
+
+    app.post('/api/login', function(req, res, next) {
         var data = util.get_data(['username', 'password'], ['stay'], req.body),
             start = function () {
                 if(data.username && data.password) {
@@ -53,10 +105,7 @@ module.exports = function(app) {
         start();
     });
 
-
-
-
-    app.get('/logout', function(req, res) {
+    app.get('/api/logout', function(req, res) {
         if(req.cookies.eg_user) {
             res.clearCookie('eg_user');
             res.redirect('/');
@@ -66,13 +115,15 @@ module.exports = function(app) {
         }
     });
 
-    app.post('/receipt', function(req, res, next) {
+    app.post('/api/receipt', function(req, res, next) {
         var data = util.get_data([
                     'name', 'bank', 'amount',
                     'reference_number', 'date', 'share_type',
                     'share_amount', 'user_id', 'reference_number', 'referrer'],
                     [], req.body),
             start = function () {
+
+
                 return check_dups();
             },
             check_dups = function () {
@@ -116,7 +167,7 @@ module.exports = function(app) {
 
     });
 
-    app.put('/receipt/:id', function(req, res, next) {
+    app.put('/api/receipt/:id', function(req, res, next) {
         var data = util.get_data([
                     'name', 'bank', 'amount',
                     'reference_number', 'date', 'share_type',
@@ -143,7 +194,7 @@ module.exports = function(app) {
         start();
     });
 
-    app.get('/receipt/:id', function (req, res, next) {
+    app.get('/api/receipt/:id', function (req, res, next) {
         var start = function () {
                 console.log("req",req.params);
                 if(!req.params.id) {
@@ -175,7 +226,7 @@ module.exports = function(app) {
         start();
     });
 
-    app.get('/receipts', function (req, res, next) {
+    app.get('/api/receipts', function (req, res, next) {
         var data = util.get_data([], ['q','category', 'page', 'start_date', 'end_date'], req.query),
             valid_category = ['share_type', 'reference_number', 'referrer', 'id'],
             start = function () {
@@ -263,16 +314,14 @@ module.exports = function(app) {
         start();
 
     });
-    app.delete('/receipt', function (req, res, next) {
-        var data = util.get_data(['id'], [], req.body),
-            start = function () {
-                console.log("data",data);
+    app.delete('/api/receipt/:id', function (req, res, next) {
+        var start = function () {
                 return delete_receipt();
             },
             delete_receipt = function () {
                 return mysql.open(config.DB)
                     .query('DELETE FROM receipt WHERE id = ?',
-                        data.id,
+                        req.params.id,
                         done
                     );
             },
@@ -292,10 +341,10 @@ module.exports = function(app) {
 
     });
 
-    app.get('/api/maa', getMaa);
+    app.get('/api/api/maa', getMaa);
 
     function getMaa(req, res, next) {
-        var json = jsonfileservice.getJsonFromFile('/../../data/maa.json');
+        var json = jsonfileservice.getJsonFromFile('/api/../../data/maa.json');
         json[0].data.results.forEach(function(character) {
             var pos = character.name.indexOf('(MAA)');
             character.name = character.name.substr(0, pos - 1);

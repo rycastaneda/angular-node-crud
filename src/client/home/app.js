@@ -24,6 +24,8 @@
     function home ($modal, $state, growl, moment, receiptService, userService) {
         /*jshint validthis: true */
         var date = moment(),
+            init = 0,
+            today = date.format('YYYY-MM-DD'),
             vm = this;
 
         vm.add_form = false;
@@ -34,6 +36,7 @@
         vm.filter = vm.filters[0];
         vm.receipts = [];
         vm.max_date = date.format('YYYY-MM-DD');
+
         vm.start_date = date.format('YYYY-MM-DD');
         vm.end_date = date.add(1, 'days').format('YYYY-MM-DD');
 
@@ -41,6 +44,7 @@
         vm.open_end = open_end;
         vm.date_changed = date_changed;
         vm.get_receipts = get_receipts;
+        vm.delete_receipt = delete_receipt;
         vm.open_receipt = open_receipt;
 
         function open_start ($event) {
@@ -56,7 +60,11 @@
         }
 
         function date_changed () {
-            return get_receipts(null, 'date', vm.start_date, vm.end_date);
+            if (today === moment(vm.start_date).format('YYYY-MM-DD')) {
+                return;
+            }
+
+            return get_receipts(null, 'date', moment(vm.start_date).format('YYYY-MM-DD'), moment(vm.end_date).format('YYYY-MM-DD'));
         }
 
         function get_receipts (q, category, start_date, end_date) {
@@ -77,7 +85,17 @@
             }, function (data) {
                 if(data.err === 'NO_DATA') {
                     vm.receipts = [];
+                    return;
                 }
+                growl.error(data.message);
+            });
+        }
+
+        function delete_receipt (id, idx) {
+            vm.getting = receiptService.delete_receipt(id).then(function (data) {
+                growl.success(data.message);
+                vm.receipts.splice(idx, 1);
+            }, function (data) {
                 growl.error(data.message);
             });
         }
@@ -118,19 +136,16 @@
 
             if (mode === 'update') {
                 // var receipt_date = moment(angular.copy(receipt.date));
-                var receipt = angular.copy(receipt);
-                $scope.data = receipt;
-                $scope.data.time = moment(receipt.date).toDate();
-                $scope.data.date = moment(receipt.date).format('YYYY-MM-DD');
-                console.log("$scope.data",$scope.data);
-                console.log("receipt",receipt);
+                var receipt_copy = angular.copy(receipt);
+                $scope.data = receipt_copy;
+                $scope.data.time = moment(receipt_copy.date).toDate();
+                $scope.data.date = moment(receipt_copy.date).format('YYYY-MM-DD');
             }
 
             $scope.share_amount_disabled = true;
             $scope.max_date = moment(new Date()).format('YYYY-MM-DD');
             $scope.mode = mode;
 
-            console.log("mode",mode);
 
             $scope.save_receipt = save_receipt;
             $scope.close = close;

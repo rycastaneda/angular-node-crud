@@ -32,7 +32,7 @@ var path = require('path'),
             host: 'localhost',
             user: 'root',
             password: '',
-            database: 'test'
+            database: 'emgoldex'
         }
 
     };

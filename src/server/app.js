@@ -42,9 +42,9 @@ app.get('/ping', function(req, res, next) {
 switch (environment){
     case 'production':
         console.log('** PRODUCTION ON AZURE **');
-        console.log('serving from ' + './build/');
-        process.chdir('./../../');
-        app.use('/', express.static('./build/'));
+        console.log('serving from ' + './src/client/ and ./');
+        app.use('/', express.static('./src/client/'));
+        app.use('/', express.static('./'));
         break;
     case 'stage':
     case 'build':

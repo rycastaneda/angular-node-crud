@@ -34,13 +34,26 @@
         </div>
     </div>
 </body>
-    <!-- inject-vendor:js -->
-    <script src="/build/js/vendor.js"></script>
-    <!-- endinject -->
+    <script src="/src/client/blocks/app.module.js"></script>
+    <script src="/src/client/blocks/logger.js"></script>
+    <script src="/src/client/blocks/router.js"></script>
 
-    <!-- inject:js -->
-    <script src="/build/js/scripts.js"></script>
-    <!-- endinject -->
+    <script src="/src/client/core/app.module.js"></script>
+    <script src="/src/client/core/config.js"></script>
+    <script src="/src/client/core/constants.js"></script>
+    <script src="/src/client/core/helpers.js"></script>
 
+    <script src="/src/client/fetchers/fetchers.module.js"></script>
+    <script src="/src/client/fetchers/github.js"></script>
+    <script src="/src/client/fetchers/receipt.js"></script>
+    <script src="/src/client/fetchers/user.js"></script>
+
+    <script src="/src/client/home/app.js"></script>
+
+    <script src="/src/client/layout/layout.js"></script>
+
+    <script src="/src/client/login/app.js"></script>
+
+    <script src="/build/js/templates.js"></script>
 
 </html>
