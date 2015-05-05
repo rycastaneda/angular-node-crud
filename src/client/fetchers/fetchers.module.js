@@ -20,9 +20,9 @@
         };
 
         function handle_error ( response ) {
-            if (!angular.isObject( response.data ) || !response.data.message) {
-                return( $q.reject( 'An unknown error occurred.' ) );
-            }
+            // if (!angular.isObject( response.data ) || !response.data.message) {
+            //     return( $q.reject( 'An unknown error occurred.' ) );
+            // }
 
             return( $q.reject( response.data ) );
         }

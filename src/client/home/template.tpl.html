@@ -3,13 +3,13 @@
 
     <div class="row searchbar">
         <div class="col-md-8">
-            <form ng-submit="vm.get_receipts(vm.q, vm.filter, vm.start_date, vm.end_date)" class="form-horizontal">
+            <form ng-submit="vm.get_receipts(vm.q, vm.filter.value, vm.start_date, vm.end_date)" class="form-horizontal">
                 <div class="input-group">
                     <input type="search" class="form-control" ng-model="vm.q" placeholder="Search">
                     <div class="input-group-btn" ng-class="{'open' : vm.search_cat} ">
-                        <button ng-click="vm.search_cat = !vm.search_cat;" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{{vm.filter}}<span class="caret"></span></button>
+                        <button ng-click="vm.search_cat = !vm.search_cat;" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{{vm.filter.label}}<span class="caret"></span></button>
                         <ul class="dropdown-menu dropdown-menu-right" role="menu" id="dropdown">
-                            <li ng-repeat="filter in vm.filters"><a href="" ng-bind="filter" ng-click="vm.filter = filter; vm.search_cat = !vm.search_cat;"></a></li>
+                            <li ng-repeat="filter in vm.filters"><a href="" ng-bind="filter.label" ng-click="vm.filter = filter; vm.search_cat = !vm.search_cat;"></a></li>
                         </ul>
                     </div>
                 </div>

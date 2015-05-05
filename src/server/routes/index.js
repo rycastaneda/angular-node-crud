@@ -228,11 +228,12 @@ module.exports = function(app) {
     });
 
     app.get('/api/receipts', function (req, res, next) {
-        var data = util.get_data([], ['q','category', 'page', 'start_date', 'end_date'], req.query),
-            valid_category = ['share_type', 'reference_number', 'referrer', 'id'],
+        var data = util.get_data([], ['q','category', 'page', 'start_date', 'end_date', 'id'], req.query),
+            valid_category = ['name','share_type', 'reference_number', 'referrer', 'id', 'date'],
             start = function () {
                 data.page = +data.page || 1;
                 data.limit = 25;
+                console.log('data', data);
                 console.log("req.cookies",req.cookies);
                 if(!req.cookies.eg_user) {
                     return next({message: 'Please login first.', err: 'AUTH_REQUIRED'});
@@ -249,7 +250,7 @@ module.exports = function(app) {
                     params = [data.q, req.cookies.eg_user, (data.page - 1) * data.limit, data.limit],
                     start;
 
-                if(!!~valid_category.indexOf(data.category)) {
+                if(!~valid_category.indexOf(data.category)) {
                     return next({message: 'Invalid category.', err: 'PARAM_ERROR'});
                 }
 
@@ -260,6 +261,7 @@ module.exports = function(app) {
                         break;
                     case 'share_type':
                     case 'id':
+                    case 'name':
                     case 'reference_number':
                     case 'referrer':
                         where = 'WHERE ' + data.category + ' = ?';

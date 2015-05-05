@@ -17,9 +17,9 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="share_amount" class="control-label col-xs-2">Share Amount *</label>
+            <label for="share_amount" class="control-label col-xs-2">Number of Shares *</label>
             <div class="col-xs-10">
-                <input type="number" class="form-control" id="share_amount" min="1" max="10" ng-model="data.share_amount" placeholder="Enter share amount" ng-disabled="share_amount_disabled" required="true">
+                <input type="number" class="form-control" id="share_amount" min="1" max="{{max_share_amount}}" ng-model="data.share_amount" placeholder="Enter share amount" ng-disabled="share_amount_disabled" required="true">
             </div>
         </div>
         <div class="form-group">

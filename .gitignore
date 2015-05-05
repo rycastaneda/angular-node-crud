@@ -1,4 +1,4 @@
-grunted/
+src/server/config/*
 node_modules/
 build/
 vendor/

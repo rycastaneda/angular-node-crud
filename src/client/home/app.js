@@ -30,7 +30,22 @@
 
         vm.current_page = 1;
         vm.search_cat = false;
-        vm.filters =  ['All', 'Referrer', 'Name', 'ID'];
+        vm.filters =  [{
+            label: 'All',
+            value: 'all'
+        }, {
+            label : 'Referrer',
+            value: 'referrer'
+        }, {
+            label: 'Name',
+            value: 'name'
+        }, {
+            label: 'ID',
+            value: 'id'
+        }, {
+            label: 'Reference Number',
+            value: 'reference_number'
+        }];
         vm.filter = vm.filters[0];
         vm.receipts = [];
         vm.max_date = date.format('YYYY-MM-DD');
@@ -73,8 +88,8 @@
                 q: q,
                 category: (category==='All') ? '' : category.toLowerCase(),
                 page: vm.current_page,
-                start_date: start_date,
-                end_date: end_date
+                start_date: moment(start_date).format('YYYY-MM-DD'),
+                end_date: moment(end_date).format('YYYY-MM-DD')
             }).then(function (data) {
                 data.forEach(function(e){
                     e.date = new Date(e.date);
@@ -91,12 +106,14 @@
         }
 
         function delete_receipt (id, idx) {
-            vm.getting = receiptService.delete_receipt(id).then(function (data) {
-                growl.success(data.message);
-                vm.receipts.splice(idx, 1);
-            }, function (data) {
-                growl.error(data.message);
-            });
+            if(confirm('Sigurado ka ba?!')){
+                vm.getting = receiptService.delete_receipt(id).then(function (data) {
+                    growl.success(data.message);
+                    vm.receipts.splice(idx, 1);
+                }, function (data) {
+                    growl.error(data.message);
+                });
+            }
         }
 
         function open_receipt (mode, receipt) {
@@ -114,7 +131,7 @@
             });
 
             modalInstance.result.then(function () {
-                get_receipts(null, 'date', vm.start_date, vm.end_date);
+                get_receipts(null, 'date', moment(vm.start_date).format('YYYY-MM-DD'), moment(vm.end_date).format('YYYY-MM-DD'))
             });
         }
 
@@ -156,14 +173,17 @@
                     case 'Solo' :
                         $scope.data.share_amount = 1;
                         $scope.share_amount_disabled = true;
+                        $scope.max_share_amount = 1;
                         break;
                     case 'Fast Track' :
                         $scope.data.share_amount = 1;
                         $scope.share_amount_disabled = false;
+                        $scope.max_share_amount = 10;
                         break;
                     case 'Patak Patak' :
                         $scope.data.share_amount = 1;
-                        $scope.share_amount_disabled = true;
+                        $scope.max_share_amount = 35;
+                        $scope.share_amount_disabled = false;
                         break;
                 }
             }
@@ -185,6 +205,8 @@
                 m.hours($scope.data.time.getHours());
 
                 $scope.data.date = +m;
+
+                console.log($scope.data);
 
 
                 if(mode == 'add') {
