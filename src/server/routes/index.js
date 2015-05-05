@@ -1,5 +1,6 @@
 var config = require(__dirname + '/../config/config')
     mysql = require(__dirname + '/../lib/mysql'),
+    Busboy = require('busboy'),
     util = require(__dirname + '/../helpers/util');
 
 module.exports = function(app) {
@@ -116,6 +117,63 @@ module.exports = function(app) {
         start();
     });
 
+    app.put('/api/receipt/:id', function(req, res, next) {
+        var data = util.get_data([
+                    'name', 'bank', 'amount',
+                    'reference_number', 'date', 'share_type',
+                    'share_amount', 'user_id', 'reference_number', 'referrer'],
+                    [], req.body),
+            start = function () {
+                console.log("req.files",req.files);
+
+
+                return check_dups();
+            },
+            check_dups = function () {
+                console.log("check dups data",data);
+                return mysql.open(config.DB)
+                    .query('SELECT id FROM receipt where date = ?',
+                        data.date,
+                        save
+                    );
+            },
+            save = function (err, result) {
+                if (err) {
+                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                }
+
+                if (result.length) {
+                    return next({
+                        message: 'Receipt with date already exists.',
+                        data: result, err: 'DATA_DUPES'
+                    });
+                }
+
+
+                if (!req.files.file) {
+                    delete data.photo;
+                    // return next({message:'Invalid data request.', err: 'DATA_ERROR'});
+                } else {
+                    data.photo = req.files.file.name;
+                }
+                console.log("data",data);
+
+                return mysql.open(config.DB)
+                    .query('UPDATE receipt SET ? WHERE id = ?',
+                        [data, req.params.id],
+                        done
+                    );
+            },
+            done = function (err, result) {
+                if (err) {
+                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                }
+
+                res.send({message: 'Receipt successfully updated'});
+            };
+        start();
+    });
+
     app.post('/api/receipt', function(req, res, next) {
         var data = util.get_data([
                     'name', 'bank', 'amount',
@@ -123,12 +181,13 @@ module.exports = function(app) {
                     'share_amount', 'user_id', 'reference_number', 'referrer'],
                     [], req.body),
             start = function () {
-
+                if (!req.files) {
+                    return next({message:'Invalid data request.', err: 'DATA_ERROR'});
+                }
 
                 return check_dups();
             },
             check_dups = function () {
-                console.log("data",data);
                 return mysql.open(config.DB)
                     .query('SELECT id FROM receipt where date = ?',
                         data.date,
@@ -149,6 +208,8 @@ module.exports = function(app) {
                     });
                 }
 
+                data.photo = req.files.file.name;
+
                 return mysql.open(config.DB)
                     .query('INSERT INTO receipt SET ?',
                         data,
@@ -168,36 +229,9 @@ module.exports = function(app) {
 
     });
 
-    app.put('/api/receipt/:id', function(req, res, next) {
-        var data = util.get_data([
-                    'name', 'bank', 'amount',
-                    'reference_number', 'date', 'share_type',
-                    'share_amount', 'user_id', 'reference_number', 'referrer'],
-                    [], req.body),
-            start = function () {
-                return update_receipt();
-            },
-            update_receipt = function () {
-
-                return mysql.open(config.DB)
-                    .query('UPDATE receipt SET ? WHERE id = ?',
-                        [data, req.params.id],
-                        done
-                    );
-            },
-            done = function (err, result) {
-                if (err) {
-                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
-                }
-
-                res.send({message: 'Receipt successfully updated'});
-            };
-        start();
-    });
-
     app.get('/api/receipt/:id', function (req, res, next) {
         var start = function () {
-                console.log("req",req.params);
+                console.log("req.params",req.params);
                 if(!req.params.id) {
                     return next({message: 'No id found.', err: 'DATA_ERROR'});
                 }
@@ -266,13 +300,13 @@ module.exports = function(app) {
                         break;
                 }
 
-                where += ' AND user_id = ?';
+                where += ' AND user_id = ? ORDER BY id desc';
 
                 console.log("where",where);
                 console.log("params",params);
 
                 return mysql.open(config.DB)
-                    .query('SELECT * FROM receipt ' + where + ' LIMIT ?, ?',
+                    .query('SELECT * FROM receipt ' + where + ' LIMIT ?, ? ',
                         params,
                         done
                     );
@@ -286,7 +320,7 @@ module.exports = function(app) {
 
                 console.log("data.q",data.q);
                 return mysql.open(config.DB)
-                    .query('SELECT * FROM receipt where user_id = ? AND (name like ? OR reference_number like ? OR referrer like ?) LIMIT ?, ?',
+                    .query('SELECT * FROM receipt where user_id = ? AND (name like ? OR reference_number like ? OR referrer like ?) ORDER BY id desc LIMIT ?, ?',
                         [req.cookies.eg_user, data.q, data.q, data.q, (data.page - 1) * data.limit, data.limit,],
                         done
                     );
@@ -304,7 +338,7 @@ module.exports = function(app) {
                 if (err) {
                     return next(err);
                 }
-                console.log("results",results);
+                // console.log("results",results);
                 if (!results.length) {
                     return next({message: 'No receipts found on database.', err: 'NO_DATA'});
                 }

@@ -17,6 +17,7 @@
         </div>
         <div class="col-md-4">
             <button class="pull-right btn btn-primary" ng-click="vm.open_receipt('add')">Add Record</button>
+            <button class="btn btn-default" ng-click='vm.to_csv()'>Export to CSV</button>
         </div>
     </div>
 
@@ -45,6 +46,7 @@
 
         <div class="col-xs-12">
             <table cg-busy="vm.getting" class="table">
+                <th></th>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Bank</th>
@@ -56,6 +58,7 @@
                 <th>Share Amount</th>
                 <th></th>
                 <tr ng-repeat="receipt in vm.receipts">
+                    <td><img ng-src="{{vm.config.uploads + receipt.photo}}" alt="" class="img-rounded" width="50" height="50px;"></td>
                     <td ng-bind="receipt.id"></td>
                     <td ng-bind="receipt.name"></td>
                     <td ng-bind="receipt.bank"></td>

@@ -13,6 +13,8 @@
     "./vendor/angular-moment/angular-moment.min.js",
     "./vendor/angular-ui-router/release/angular-ui-router.min.js",
     "./vendor/angular-busy/dist/angular-busy.min.js",
+    "./vendor/ng-file-upload-shim/ng-file-upload-shim.min.js",
+    "./vendor/ng-file-upload-shim/ng-file-upload.min.js",
     "./vendor/angular-growl-v2/build/angular-growl.min.js",
     "./vendor/moment/min/moment.min.js"
   ],

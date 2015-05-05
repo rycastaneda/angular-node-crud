@@ -7,6 +7,7 @@
             'angularMoment',
             'cgBusy',
             'angular-growl',
+            'ngFileUpload',
             'blocks',
             'fetchers',
             'app.layout',

@@ -2,8 +2,25 @@
     <button type="button" class="close" ng-click="close()"  aria-hidden="true">&times;</button>
     <h4 class="modal-title">{{mode.toUpperCase()}} RECEIPT</h4>
 </div>
-<form class="form-horizontal" ng-submit="save_receipt()" cg-busy="saving">
+<form class="form-horizontal" cg-busy="saving" ng-submit="save_receipt()">
     <div class="modal-body">
+        <div growl inline="true"></div>
+        <div class="form-group">
+            <label for="amount" class="control-label col-xs-2"></label>
+            <div class="col-xs-10">
+                <img ng-src="{{config.uploads + data.photo}}" alt="" width="150" height="150" ng-if="is_string(data.photo)"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="amount" class="control-label col-xs-2">Receipt Photo *</label>
+            <div class="col-xs-10">
+                <input type="file" ngf-select ng-model="data.photo" ngf-change="generateThumb(data.photo[0], $files)"
+                    ngf-capture="'camera'"
+                    accept="image/*"
+                    ngf-accept="'.jpg,.png'">
+                <img ng-show="data.photo[0] != null" ngf-src="config.photo + data.photo[0]" width="140" height="140">
+            </div>
+        </div>
         <div class="form-group">
             <label for="name" class="control-label col-xs-2">Name *</label>
             <div class="col-xs-10">

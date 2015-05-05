@@ -14,6 +14,9 @@
         .service('config', config);
 
     //@ngInject
-    function config (growlProvider) {
+    function config () {
+        return {
+            uploads : '/uploads/'
+        };
     }
 })();
