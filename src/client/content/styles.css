@@ -119,3 +119,10 @@
         height: inherit;
     }
 }
+
+.receipts .ng-enter, .receipts .ng-move{
+    -webkit-animation: fadeIn 1s;
+    -moz-animation: fadeIn 1s;
+    -o-animation: fadeIn 1s;
+    animation: fadeIn 1s;
+}
