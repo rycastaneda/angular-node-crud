@@ -135,13 +135,16 @@
                     m.hours($scope.data.time.getHours());
 
                     $scope.data.date = +m;
+                    if (!$scope.data.photo) {
+                        return growl.error('Please select a photo of receipt.', {referenceId : 'modal'});
+                    }
 
                     if (mode == 'add') {
                         $scope.saving = receiptService.add_receipt($scope.data).success(function (data) {
                             growl.success(data.message);
                             $modalInstance.close('success');
                         }).error(function (data) {
-                            growl.error(data.message);
+                            growl.error(data.message, {referenceId : 'modal'});
                         });
                     }
                     else {
@@ -149,7 +152,7 @@
                             growl.success(data.message);
                             $modalInstance.close('success');
                         }).error(function (data) {
-                            growl.error(data.message);
+                            growl.error(data.message, {referenceId : 'modal'});
                         });
                     }
                 }

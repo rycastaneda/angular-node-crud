@@ -4,7 +4,7 @@
 </div>
 <form class="form-horizontal" cg-busy="saving" ng-submit="save_receipt()">
     <div class="modal-body">
-        <div growl inline="true"></div>
+        <div growl inline="true" reference="modal" limit-messages="1"></div>
         <div class="form-group">
             <label for="amount" class="control-label col-xs-2"></label>
             <div class="col-xs-10">
@@ -17,7 +17,7 @@
                 <input type="file" ngf-select ng-model="data.photo" ngf-change="generateThumb(data.photo[0], $files)"
                     ngf-capture="'camera'"
                     accept="image/*"
-                    ngf-accept="'.jpg,.png'" required="true">
+                    ngf-accept="'.jpg,.png'">
                 <img ng-if="!is_string(data.photo)" ngf-src="config.photo + data.photo[0]" width="140" height="140">
             </div>
         </div>

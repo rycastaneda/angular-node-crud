@@ -114,7 +114,7 @@ module.exports = function (app) {
         }
     });
 
-    app.get('/api/user', function (req, res) {
+    app.get('/api/user', function (req, res, next) {
         var start = function () {
                 return mysql.open(config.DB)
                     .query('Select name, email from user where id = ?',
