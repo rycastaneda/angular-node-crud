@@ -2,146 +2,58 @@
     'use strict';
 
     angular
-        .module('app.home', [])
+        .module('app.home')
         .directive('receiptViewer', directive);
 
     function directive () {
 
         return  {
             restrict: 'E',
-            scope: {receipt : '=', mode: '@'},
-            templateUrl: '//'+window.location.host+'/assets/js/transition/actions.tpl.html',
+            scope: {receipt : '=', mode: '@', success: '&'},
+            template: '<button class="pull-right btn btn-primary" ng-click="open_receipt(mode, receipt)">{{capitalize(mode)}} </button>',
+            controllerAs: 'vm',
             controller: receipts
         };
 
         //@ngInject
-        function receipts($modal, $state, growl, moment, receiptService, userService, config) {
+        function receipts($scope, $modal, $state, growl, moment, receiptService, userService, config, $filter) {
             /*jshint validthis: true */
             var date = moment(),
-                init = 0,
-                today = date.format('YYYY-MM-DD'),
-                vm = this;
+                today = date.format('YYYY-MM-DD');
 
-            vm.config = config;
-            vm.current_page = 1;
-            vm.search_cat = false;
-            vm.filters = [{
-                label: 'All',
-                value: 'all'
-            }, {
-                label: 'Referrer',
-                value: 'referrer'
-            }, {
-                label: 'Name',
-                value: 'name'
-            }, {
-                label: 'ID',
-                value: 'id'
-            }, {
-                label: 'Reference Number',
-                value: 'reference_number'
-            }];
+            $scope.config = config;
+            $scope.capitalize = $filter('capitalize');
+            $scope.open_receipt = open_receipt;
 
-
-
-            vm.open_receipt = open_receipt;
-            vm.get_reports = get_reports;
-
-            console.log("vm.config", vm.config);
-
-            function open_receipt(mode, receipt) {
+            function open_receipt() {
                 var modalInstance = $modal.open({
                     controller: receipt_controller,
                     templateUrl: 'home/receipt.tpl.html',
                     resolve: {
                         mode: function () {
-                            return mode;
+                            return $scope.mode;
                         },
                         receipt: function () {
-                            return receipt;
+                            return $scope.receipt;
                         }
                     }
                 });
 
-                modalInstance.result.then(function () {
-                    get_receipts(null, vm.filter.value, moment(vm.start_date).format('YYYY-MM-DD'),
-                        moment(vm.end_date).format('YYYY-MM-DD'));
-                });
-            }
-
-            function get_reports () {
-
-                vm.getting = receiptService.get_receipts({
-                    q: vm.q,
-                    category: vm.report_category,
-                    start_date: moment(vm.start_date).format('YYYY-MM-DD'),
-                    end_date: moment(vm.end_date).format('YYYY-MM-DD')
-                }).then(function (data) {
-                    data.data.forEach(function (e) {
-                        e.date = new Date(e.date);
-                    });
-
-                    return to_csv(data.data);
-                }, function (data) {
-                    if (data.err === 'NO_DATA') {
-                        return;
-                    }
-                    growl.error(data.message);
-                });
-            }
-
-            function to_csv(receipts) {
-
-                var csvContent = "data:text/csv;charset=utf-8,",
-                    encodedUri, link;
-
-                delete receipts[0].photo;
-
-                csvContent += Object.keys(receipts[0]).join(',') + ',\r\n';
-                receipts.forEach(function (e) {
-                    e.date = moment(e.date).format('YYYY-MM-DD');
-                    delete e.photo;
-                });
-
-
-                csvContent += ConvertToCSV(receipts);
-                encodedUri = encodeURI(csvContent);
-                link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "my_data.csv");
-                link.click();
-            }
-
-            function ConvertToCSV(objArray) {
-                var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-                var str = '';
-
-                for (var i = 0; i < array.length; i++) {
-                    var line = '';
-                    for (var index in array[i]) {
-                        if (line !== '') line += ',';
-
-                        line += array[i][index];
-                    }
-
-                    str += line + '\r\n';
-                }
-
-                return str;
+                modalInstance.result.then($scope.success);
             }
 
             //@ngInject
             function receipt_controller($scope, $modalInstance, Upload, mode, receipt, config) {
                 $scope.data = {
-                    name: 'test',
+                    name: '',
                     share_type: 'Solo',
                     share_amount: 1,
                     amount: 1,
-                    bank: 'test',
+                    bank: '',
                     date: moment(new Date()).format('YYYY-MM-DD'),
                     time: new Date(),
-                    reference_number: 'test',
-                    referrer: 'test',
+                    reference_number: '',
+                    referrer: '',
                     photo: null,
                     user_id: userService.user
                 };
@@ -149,7 +61,6 @@
                 $scope.fileReaderSupported = window.FileReader !== null && (window.FileAPI === null);
 
                 if (mode === 'update') {
-                    // var receipt_date = moment(angular.copy(receipt.date));
                     var receipt_copy = angular.copy(receipt);
                     $scope.data = receipt_copy;
                     $scope.data.time = moment(receipt_copy.date).toDate();
@@ -202,7 +113,6 @@
                 }
 
                 $scope.generateThumb = function (file) {
-                    console.log("file", file);
                     if (file !== null) {
                         if ($scope.fileReaderSupported && file.type.indexOf('image') > -1) {
                             $timeout(function () {
@@ -212,9 +122,6 @@
                                     $timeout(function () {
                                         file.dataUrl = e.target.result;
                                         $scope.show_thumb = true;
-                                        console.log("$scope.show_thumb", $scope
-                                            .show_thumb);
-                                        console.log("file.dataUrl", file.dataUrl);
                                     });
                                 };
                             });
@@ -230,8 +137,7 @@
                     $scope.data.date = +m;
 
                     if (mode == 'add') {
-                        $scope.saving = receiptService.add_receipt($scope.data).success(function (
-                            data) {
+                        $scope.saving = receiptService.add_receipt($scope.data).success(function (data) {
                             growl.success(data.message);
                             $modalInstance.close('success');
                         }).error(function (data) {
@@ -239,8 +145,7 @@
                         });
                     }
                     else {
-                        $scope.saving = receiptService.update_receipt($scope.data).success(function (
-                            data) {
+                        $scope.saving = receiptService.update_receipt($scope.data).success(function (data) {
                             growl.success(data.message);
                             $modalInstance.close('success');
                         }).error(function (data) {
@@ -250,8 +155,6 @@
                 }
 
             }
-
-            get_receipts(null, 'date', vm.start_date, vm.end_date);
 
         }
     }

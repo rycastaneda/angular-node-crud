@@ -16,7 +16,14 @@
     //@ngInject
     function config () {
         return {
-            uploads : '/uploads/'
+            uploads : '/uploads/',
+            filters : [
+                {label: 'All', value: 'all'},
+                {label: 'Referrer', value: 'referrer'},
+                {label: 'Name', value: 'name'},
+                {label: 'ID', value: 'id'},
+                {label: 'Reference Number', value: 'reference_number'}
+            ]
         };
     }
 })();

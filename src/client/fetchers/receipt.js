@@ -15,21 +15,12 @@
         };
 
         function add_receipt(data) {
-            // request = $http({
-            //     method: 'POST',
-            //     url: rest.api_base + '/receipt',
-            //     headers: rest.custom_headers,
-            //     data : helpers.serialize(data)
-            // });
-
             request = Upload.upload({
                 url: rest.api_base + '/receipt',
                 fields: data,
                 file: data.photo[0]
             });
-            console.log("request", request);
             return request;
-            // return( request.then( rest.handle_success, rest.handle_error ) );
         }
 
         function get_receipts(data) {
@@ -47,7 +38,6 @@
                 fields: data,
                 file: data.photo[0]
             });
-            console.log("request", request);
             return request;
         }
 

@@ -17,8 +17,8 @@
                 <input type="file" ngf-select ng-model="data.photo" ngf-change="generateThumb(data.photo[0], $files)"
                     ngf-capture="'camera'"
                     accept="image/*"
-                    ngf-accept="'.jpg,.png'">
-                <img ng-show="data.photo[0] != null" ngf-src="config.photo + data.photo[0]" width="140" height="140">
+                    ngf-accept="'.jpg,.png'" required="true">
+                <img ng-if="!is_string(data.photo)" ngf-src="config.photo + data.photo[0]" width="140" height="140">
             </div>
         </div>
         <div class="form-group">
