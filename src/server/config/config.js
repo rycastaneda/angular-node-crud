@@ -17,28 +17,21 @@ var path = require('path'),
 
         PORT: 3000,
 
-        CORS :  {
-            allowed_headers : 'Access-Token, X-Requested-With, Content-Type, Accept',
+        CORS: {
+            allowed_headers: 'Access-Token, X-Requested-With, Content-Type, Accept',
             // allowed_origins : '*',
-            allowed_methods : 'GET, POST, PUT, OPTIONS, DELETE'
+            allowed_methods: 'GET, POST, PUT, OPTIONS, DELETE'
         },
 
         UPLOAD_DIR: path.normalize(__dirname + '/../uploads/'),
         VIEWS_DIR: path.normalize(__dirname + '/../views'),
         LOGS_DIR: path.normalize(__dirname + '/../logs/'),
 
-
-        DB: {
-            host: 'localhost',
-            user: 'root',
-            password: '',
-            database: 'emgoldex'
-        }
-
     };
 
-    if (!process.env.NODE_ENV) {
-        process.env.NODE_ENV = 'development';
-    }
+if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = 'development';
+}
 
-    module.exports = extend(config, require(__dirname + '/env/' + process.env.NODE_ENV));
+module.exports = extend(config, require(__dirname + '/env/' + process.env.NODE_ENV));
+

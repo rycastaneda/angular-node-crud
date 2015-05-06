@@ -33,17 +33,15 @@
         function submit_login () {
             vm.login_loading = userService.login(vm.data).then(function (user) {
                 $scope.$emit('logged', user.id);
-                userService.user = user;
-                console.log("error_message",error_message);
+                console.log('user', user);
+                userService.user = user.id;
                 if(error_message) {
                     error_message.destroy();
                 }
                 $state.go('home');
 
             }, function (data) {
-                console.log("data",data);
-                error_message = growl.error(data.message);
-                console.log("error_message",error_message);
+                growl.error(data.message);
             });
         }
     }

@@ -31,9 +31,27 @@
         vm.config = config;
         vm.current_page = 1;
         vm.search_cat = false;
-        vm.filters = ['All', 'Referrer', 'Name', 'ID'];
+        vm.filters = [{
+            label: 'All',
+            value: 'all'
+        }, {
+            label: 'Referrer',
+            value: 'referrer'
+        }, {
+            label: 'Name',
+            value: 'name'
+        }, {
+            label: 'ID',
+            value: 'id'
+        }, {
+            label: 'Reference Number',
+            value: 'reference_number'
+        }];
         vm.filter = vm.filters[0];
         vm.receipts = [];
+        vm.q = '';
+        vm.report_category = 'date';
+
         vm.max_date = date.format('YYYY-MM-DD');
         vm.start_date = date.format('YYYY-MM-DD');
         vm.end_date = date.add(1, 'days').format('YYYY-MM-DD');
@@ -44,7 +62,7 @@
         vm.get_receipts = get_receipts;
         vm.delete_receipt = delete_receipt;
         vm.open_receipt = open_receipt;
-        vm.to_csv = to_csv;
+        vm.get_reports = get_reports;
 
         console.log("vm.config", vm.config);
 
@@ -64,9 +82,8 @@
             if (today === moment(vm.start_date).format('YYYY-MM-DD')) {
                 return;
             }
-
-            return get_receipts(null, 'date', moment(vm.start_date).format('YYYY-MM-DD'), moment(vm.end_date)
-                .format('YYYY-MM-DD'));
+            vm.report_category = 'date';
+            return get_receipts(null, 'date', vm.start_date, vm.end_date);
         }
 
         function get_receipts(q, category, start_date, end_date) {
@@ -76,13 +93,16 @@
                 q: q,
                 category: (category === 'All') ? '' : category.toLowerCase(),
                 page: vm.current_page,
-                start_date: start_date,
-                end_date: end_date
+                start_date: moment(start_date).format('YYYY-MM-DD'),
+                end_date: moment(end_date).format('YYYY-MM-DD')
             }).then(function (data) {
-                data.forEach(function (e) {
+                data.data.forEach(function (e) {
                     e.date = new Date(e.date);
                 });
-                vm.receipts = data;
+
+                vm.report_category = category;
+                vm.receipts = data.data;
+                vm.count = data.count;
                 console.log("vm.receipts", vm.receipts);
 
             }, function (data) {
@@ -95,12 +115,14 @@
         }
 
         function delete_receipt(id, idx) {
-            vm.getting = receiptService.delete_receipt(id).then(function (data) {
-                growl.success(data.message);
-                vm.receipts.splice(idx, 1);
-            }, function (data) {
-                growl.error(data.message);
-            });
+            if (confirm('Sigurado ka ba?!')) {
+                vm.getting = receiptService.delete_receipt(id).then(function (data) {
+                    growl.success(data.message);
+                    vm.receipts.splice(idx, 1);
+                }, function (data) {
+                    growl.error(data.message);
+                });
+            }
         }
 
         function open_receipt(mode, receipt) {
@@ -118,28 +140,47 @@
             });
 
             modalInstance.result.then(function () {
-                get_receipts(null, 'date', vm.start_date, vm.end_date);
+                get_receipts(null, vm.filter.value, moment(vm.start_date).format('YYYY-MM-DD'),
+                    moment(vm.end_date).format('YYYY-MM-DD'));
             });
         }
 
-        function to_csv() {
-            if (!vm.receipts) {
-                return;
-            }
+        function get_reports () {
+
+            vm.getting = receiptService.get_receipts({
+                q: vm.q,
+                category: vm.report_category,
+                start_date: moment(vm.start_date).format('YYYY-MM-DD'),
+                end_date: moment(vm.end_date).format('YYYY-MM-DD')
+            }).then(function (data) {
+                data.data.forEach(function (e) {
+                    e.date = new Date(e.date);
+                });
+
+                return to_csv(data.data);
+            }, function (data) {
+                if (data.err === 'NO_DATA') {
+                    return;
+                }
+                growl.error(data.message);
+            });
+        }
+
+        function to_csv(receipts) {
+
             var csvContent = "data:text/csv;charset=utf-8,",
-                receipts_csv = angular.copy(vm.receipts),
                 encodedUri, link;
 
-            delete receipts_csv[0].photo;
+            delete receipts[0].photo;
 
-            csvContent += Object.keys(receipts_csv[0]).join(',') + ',\r\n';
-            receipts_csv.forEach(function (e) {
+            csvContent += Object.keys(receipts[0]).join(',') + ',\r\n';
+            receipts.forEach(function (e) {
                 e.date = moment(e.date).format('YYYY-MM-DD');
                 delete e.photo;
             });
 
 
-            csvContent += ConvertToCSV(receipts_csv);
+            csvContent += ConvertToCSV(receipts);
             encodedUri = encodeURI(csvContent);
             link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -207,14 +248,17 @@
                 case 'Solo':
                     $scope.data.share_amount = 1;
                     $scope.share_amount_disabled = true;
+                    $scope.max_share_amount = 1;
                     break;
                 case 'Fast Track':
                     $scope.data.share_amount = 1;
                     $scope.share_amount_disabled = false;
+                    $scope.max_share_amount = 10;
                     break;
                 case 'Patak Patak':
                     $scope.data.share_amount = 1;
-                    $scope.share_amount_disabled = true;
+                    $scope.max_share_amount = 35;
+                    $scope.share_amount_disabled = false;
                     break;
                 }
             }
@@ -244,10 +288,11 @@
                                 $timeout(function () {
                                     file.dataUrl = e.target.result;
                                     $scope.show_thumb = true;
-                                    console.log("$scope.show_thumb", $scope.show_thumb);
+                                    console.log("$scope.show_thumb", $scope
+                                        .show_thumb);
                                     console.log("file.dataUrl", file.dataUrl);
                                 });
-                            }
+                            };
                         });
                     }
                 }
@@ -260,10 +305,9 @@
 
                 $scope.data.date = +m;
 
-                console.log("$scope.data", $scope.data);
-
                 if (mode == 'add') {
-                    $scope.saving = receiptService.add_receipt($scope.data).success(function (data) {
+                    $scope.saving = receiptService.add_receipt($scope.data).success(function (
+                        data) {
                         growl.success(data.message);
                         $modalInstance.close('success');
                     }).error(function (data) {
@@ -271,7 +315,8 @@
                     });
                 }
                 else {
-                    $scope.saving = receiptService.update_receipt($scope.data).success(function (data) {
+                    $scope.saving = receiptService.update_receipt($scope.data).success(function (
+                        data) {
                         growl.success(data.message);
                         $modalInstance.close('success');
                     }).error(function (data) {

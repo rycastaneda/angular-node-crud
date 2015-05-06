@@ -1,15 +1,15 @@
 var config = require(__dirname + '/../config/config')
-    mysql = require(__dirname + '/../lib/mysql'),
+mysql = require(__dirname + '/../lib/mysql'),
     Busboy = require('busboy'),
     util = require(__dirname + '/../helpers/util');
 
-module.exports = function(app) {
-    app.get('/', function(req, res) {
+module.exports = function (app) {
+    app.get('/', function (req, res) {
         var index = (process.env.NODE_ENV === 'development') ? '-dev' : '';
-        console.log("index",index);
-        console.log("process.env.NODE_ENV",process.env.NODE_ENV);
+        console.log("index", index);
+        console.log("process.env.NODE_ENV", process.env.NODE_ENV);
 
-        if(req.cookies && req.cookies.eg_user) {
+        if (req.cookies && req.cookies.eg_user) {
             res.render('index' + index + '.jade', {
                 user: req.cookies.eg_user,
             });
@@ -21,20 +21,22 @@ module.exports = function(app) {
         }
     });
 
-    app.post('/login', function(req, res, next) {
+    app.post('/login', function (req, res, next) {
         var data = util.get_data(['username', 'password'], ['stay'], req.body),
             start = function () {
-                console.log("data",data);
-                if(data.username && data.password) {
+                console.log("data", data);
+                if (data.username && data.password) {
                     return check_user(data);
                 }
 
-                return next({message:'Invalid data request.', err: 'DATA_ERROR'});
+                return next({
+                    message: 'Invalid data request.',
+                    err: 'DATA_ERROR'
+                });
             },
             check_user = function () {
                 return mysql.open(config.DB)
-                    .query('Select id from user where username = ? and password = ?',
-                        [data.username, data.password],
+                    .query('Select id from user where username = ? and password = ?', [data.username, data.password],
                         update_cookies
                     );
             },
@@ -43,24 +45,32 @@ module.exports = function(app) {
                     return next(err);
                 }
 
-                if ( ! result.length) {
-                    return next({message:'Incorrect password. Please try again.', err: 'AUTH_ERROR'});
+                if (!result.length) {
+                    return next({
+                        message: 'Incorrect password. Please try again.',
+                        err: 'AUTH_ERROR'
+                    });
                 }
 
                 if (data.stay) {
-                    res.cookie('eg_user', result[0].id, { maxAge: 604800000, httpOnly: false});
+                    res.cookie('eg_user', result[0].id, {
+                        maxAge: 604800000,
+                        httpOnly: false
+                    });
                     return res.send(result[0]);
                 }
 
-                res.cookie('eg_user', result[0].id, { httpOnly: false });
+                res.cookie('eg_user', result[0].id, {
+                    httpOnly: false
+                });
                 res.send(result[0]);
             };
 
         start();
     });
 
-    app.get('/logout', function(req, res) {
-        if(req.cookies.eg_user) {
+    app.get('/logout', function (req, res) {
+        if (req.cookies.eg_user) {
             res.clearCookie('eg_user');
             res.redirect('/');
         }
@@ -70,45 +80,58 @@ module.exports = function(app) {
     });
 
     app.use('/api/*', function (req, res, next) {
-       if(!req.cookies.eg_user) {
+        if (!req.cookies.eg_user) {
             res.status(400);
-            return res.send({message: 'Please login first.', err: 'AUTH_REQUIRED'});
-       }
+            return res.send({
+                message: 'Please login first.',
+                err: 'AUTH_REQUIRED'
+            });
+        }
 
         mysql.open(config.DB)
             .query('Select id from user where id = ?',
                 req.cookies.eg_user,
                 sql_result
             );
-        function sql_result (err, result) {
+
+        function sql_result(err, result) {
 
             if (err) {
                 res.status(400);
-                return res.send({message: 'DATABASE ERROR', err: 'SQL_ERROR'});
+                return res.send({
+                    message: 'DATABASE ERROR',
+                    err: 'SQL_ERROR'
+                });
             }
 
             if (result.length) {
-                console.log("result",result);
+                console.log("result", result);
                 return next();
             }
 
             res.status(400);
-            return res.send({message: 'INVALID COOKIE', err: 'COOKIE_ERROR'});
+            return res.send({
+                message: 'INVALID COOKIE',
+                err: 'COOKIE_ERROR'
+            });
 
         }
     });
 
-    app.get('/api/user', function(req, res) {
+    app.get('/api/user', function (req, res) {
         var start = function () {
-            return mysql.open(config.DB)
-                .query('Select name, email from user where id = ?',
-                    req.cookies.eg_user,
-                    done
-                );
+                return mysql.open(config.DB)
+                    .query('Select name, email from user where id = ?',
+                        req.cookies.eg_user,
+                        done
+                    );
             },
             done = function (err, result) {
-                if(err) {
-                    return next({message: 'Something went wrong. Please try again', err: 'SQL_ERROR'});
+                if (err) {
+                    return next({
+                        message: 'Something went wrong. Please try again',
+                        err: 'SQL_ERROR'
+                    });
                 }
 
                 res.send(result[0]);
@@ -117,35 +140,39 @@ module.exports = function(app) {
         start();
     });
 
-    app.put('/api/receipt/:id', function(req, res, next) {
+    app.put('/api/receipt/:id', function (req, res, next) {
         var data = util.get_data([
-                    'name', 'bank', 'amount',
-                    'reference_number', 'date', 'share_type',
-                    'share_amount', 'user_id', 'reference_number', 'referrer'],
-                    [], req.body),
+                'name', 'bank', 'amount',
+                'reference_number', 'date', 'share_type',
+                'share_amount', 'user_id', 'reference_number', 'referrer'
+            ], [], req.body),
             start = function () {
-                console.log("req.files",req.files);
+                console.log("req.files", req.files);
 
 
                 return check_dups();
             },
             check_dups = function () {
-                console.log("check dups data",data);
+                console.log("check dups data", data);
                 return mysql.open(config.DB)
-                    .query('SELECT id FROM receipt where date = ?',
-                        data.date,
+                    .query('SELECT id FROM receipt where date = ? and id != ?',
+                        [data.date, req.params.id],
                         save
                     );
             },
             save = function (err, result) {
                 if (err) {
-                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                    return next({
+                        message: 'Receipt not saved. Please try again.',
+                        err: 'SQL_ERROR'
+                    });
                 }
 
                 if (result.length) {
                     return next({
                         message: 'Receipt with date already exists.',
-                        data: result, err: 'DATA_DUPES'
+                        data: result,
+                        err: 'DATA_DUPES'
                     });
                 }
 
@@ -153,36 +180,44 @@ module.exports = function(app) {
                 if (!req.files.file) {
                     delete data.photo;
                     // return next({message:'Invalid data request.', err: 'DATA_ERROR'});
-                } else {
+                }
+                else {
                     data.photo = req.files.file.name;
                 }
-                console.log("data",data);
+                console.log("data", data);
 
                 return mysql.open(config.DB)
-                    .query('UPDATE receipt SET ? WHERE id = ?',
-                        [data, req.params.id],
+                    .query('UPDATE receipt SET ? WHERE id = ?', [data, req.params.id],
                         done
                     );
             },
             done = function (err, result) {
                 if (err) {
-                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                    return next({
+                        message: 'Receipt not saved. Please try again.',
+                        err: 'SQL_ERROR'
+                    });
                 }
 
-                res.send({message: 'Receipt successfully updated'});
+                res.send({
+                    message: 'Receipt successfully updated'
+                });
             };
         start();
     });
 
-    app.post('/api/receipt', function(req, res, next) {
+    app.post('/api/receipt', function (req, res, next) {
         var data = util.get_data([
-                    'name', 'bank', 'amount',
-                    'reference_number', 'date', 'share_type',
-                    'share_amount', 'user_id', 'reference_number', 'referrer'],
-                    [], req.body),
+                'name', 'bank', 'amount',
+                'reference_number', 'date', 'share_type',
+                'share_amount', 'user_id', 'reference_number', 'referrer'
+            ], [], req.body),
             start = function () {
                 if (!req.files) {
-                    return next({message:'Invalid data request.', err: 'DATA_ERROR'});
+                    return next({
+                        message: 'Invalid data request.',
+                        err: 'DATA_ERROR'
+                    });
                 }
 
                 return check_dups();
@@ -196,15 +231,19 @@ module.exports = function(app) {
             },
             save = function (err, result) {
                 if (err) {
-                    console.log("err1",err);
-                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                    console.log("err1", err);
+                    return next({
+                        message: 'Receipt not saved. Please try again.',
+                        err: 'SQL_ERROR'
+                    });
                 }
-                console.log("result",result);
+                console.log("result", result);
 
                 if (result.length) {
                     return next({
                         message: 'Receipt with date already exists.',
-                        data: result, err: 'DATA_DUPES'
+                        data: result,
+                        err: 'DATA_DUPES'
                     });
                 }
 
@@ -218,11 +257,16 @@ module.exports = function(app) {
             },
             done = function (err, result) {
                 if (err) {
-                    console.log("err2",err);
-                    return next({message: 'Receipt not saved. Please try again.', err: 'SQL_ERROR'});
+                    console.log("err2", err);
+                    return next({
+                        message: 'Receipt not saved. Please try again.',
+                        err: 'SQL_ERROR'
+                    });
                 }
 
-                res.send({message: 'Receipt successfully saved'});
+                res.send({
+                    message: 'Receipt successfully saved'
+                });
             };
 
         start();
@@ -231,9 +275,12 @@ module.exports = function(app) {
 
     app.get('/api/receipt/:id', function (req, res, next) {
         var start = function () {
-                console.log("req.params",req.params);
-                if(!req.params.id) {
-                    return next({message: 'No id found.', err: 'DATA_ERROR'});
+                console.log("req.params", req.params);
+                if (!req.params.id) {
+                    return next({
+                        message: 'No id found.',
+                        err: 'DATA_ERROR'
+                    });
                 }
 
                 return get_receipt();
@@ -252,7 +299,10 @@ module.exports = function(app) {
                 }
 
                 if (!result.length) {
-                    return next({message: 'No receipt found on database.', err: 'NO_DATA'});
+                    return next({
+                        message: 'No receipt found on database.',
+                        err: 'NO_DATA'
+                    });
                 }
 
                 res.send(result[0]);
@@ -261,94 +311,157 @@ module.exports = function(app) {
         start();
     });
 
+
     app.get('/api/receipts', function (req, res, next) {
-        var data = util.get_data([], ['q','category', 'page', 'start_date', 'end_date'], req.query),
-            valid_category = ['share_type', 'reference_number', 'referrer', 'id'],
+        var data = util.get_data([], ['q', 'category', 'page', 'start_date', 'end_date', 'id'], req.query),
+            valid_category = ['name', 'share_type', 'reference_number', 'referrer', 'id', 'date'],
+            query, params, receipts,
             start = function () {
-                data.page = +data.page || 1;
-                data.limit = 25;
-                console.log("req.cookies",req.cookies);
-                if(!req.cookies.eg_user) {
-                    return next({message: 'Please login first.', err: 'AUTH_REQUIRED'});
+                if (!req.cookies.eg_user) {
+                    return next({
+                        message: 'Please login first.',
+                        err: 'AUTH_REQUIRED'
+                    });
+                }
+                console.log("getting receipts", data);
+                if (data.page) {
+                    data.page = +data.page || 1;
+                    data.limit = 25;
                 }
 
-                if (data.category) {
+                query = 'SELECT * FROM receipt';
+
+                if (data.category !== 'all') {
                     return search();
                 }
 
                 return search_all();
             },
             search = function () {
-                var where = '',
-                    params = [data.q, req.cookies.eg_user, (data.page - 1) * data.limit, data.limit],
-                    start;
+                var where = '';
 
-                if(!!~valid_category.indexOf(data.category)) {
-                    return next({message: 'Invalid category.', err: 'PARAM_ERROR'});
+                params = [data.q, +req.cookies.eg_user];
+
+                if (!~valid_category.indexOf(data.category)) {
+                    return next({
+                        message: 'Invalid category.',
+                        err: 'PARAM_ERROR'
+                    });
                 }
 
                 switch (data.category) {
-                    case 'date' :
-                        where = 'WHERE date > ? AND date < ?';
-                        params = [+new Date(data.start_date), +new Date(data.end_date), req.cookies.eg_user, (data.page - 1) * data.limit, data.limit,];
+                    case 'date':
+                        where = ' WHERE date > ? AND date < ?';
+                        params = [+new Date(data.start_date), +new Date(data.end_date), +req.cookies.eg_user];
                         break;
                     case 'share_type':
                     case 'id':
+                    case 'name':
                     case 'reference_number':
                     case 'referrer':
-                        where = 'WHERE ' + data.category + ' = ?';
+                        where = ' WHERE ' + data.category + ' = ?';
                         break;
                 }
 
                 where += ' AND user_id = ? ORDER BY id desc';
 
-                console.log("where",where);
+                query += where;
+
+                if (data.page) {
+                    query += ' LIMIT ?, ?';
+                    params.push((data.page - 1) * data.limit);
+                    params.push(data.limit);
+                }
+
+                console.log("query",query);
                 console.log("params",params);
 
                 return mysql.open(config.DB)
-                    .query('SELECT * FROM receipt ' + where + ' LIMIT ?, ? ',
-                        params,
-                        done
-                    );
+                    .query(query, params, get_total);
             },
+
             search_all = function () {
-                if(!data.q) {
+                params = [+req.cookies.eg_user, data.q, data.q, data.q];
+
+                if (!data.q) {
                     return search_user_receipts();
                 }
 
                 data.q = '%' + data.q + '%';
 
-                console.log("data.q",data.q);
+                query += ' WHERE user_id = ? AND(name like ? OR reference_number like ? OR referrer like ? ) ORDER BY id desc';
+
+                if ( data.page) {
+                    query += ' LIMIT ?, ?';
+                    params.push((data.page - 1) * data.limit);
+                    params.push(data.limit);
+                }
+
                 return mysql.open(config.DB)
-                    .query('SELECT * FROM receipt where user_id = ? AND (name like ? OR reference_number like ? OR referrer like ?) ORDER BY id desc LIMIT ?, ?',
-                        [req.cookies.eg_user, data.q, data.q, data.q, (data.page - 1) * data.limit, data.limit,],
-                        done
-                    );
+                    .query(query, params, get_total);
             },
 
             search_user_receipts = function () {
+                query += ' WHERE user_id = ? ORDER BY id desc';
+                params = [+req.cookies.eg_user];
+
+                if ( data.page) {
+                    query += ' LIMIT ?, ?';
+                    params.push((data.page - 1) * data.limit);
+                    params.push(data.limit);
+                }
+
+                console.log("query",query);
+                console.log("params",params);
+
                 return mysql.open(config.DB)
-                    .query('SELECT * FROM receipt where user_id = ?',
-                        [req.cookies.eg_user],
-                        done
-                    );
-            }
+                    .query(query, params, get_total);
+            },
+
+            get_total = function (err, results) {
+                if (err) {
+                    return next(err);
+                }
+
+                if (!results.length) {
+                    return next({
+                        message: 'No receipts found on database.',
+                        err: 'NO_DATA'
+                    });
+                }
+
+                receipts = results;
+
+                if (!data.page) {
+                    return done(err, results);
+                }
+
+                console.log("receipts.length", receipts.length);
+                query = query.replace('*', 'count(*) as count').replace('LIMIT ?, ?', '');
+                params = params.splice(0, params.length - 2);
+
+                console.log("query",query);
+                console.log("params",params);
+                return mysql.open(config.DB)
+                    .query(query, params, done);
+
+            },
 
             done = function (err, results) {
                 if (err) {
                     return next(err);
                 }
-                // console.log("results",results);
-                if (!results.length) {
-                    return next({message: 'No receipts found on database.', err: 'NO_DATA'});
-                }
-
-                res.send(results);
+                console.log("results", results);
+                res.send({
+                    data: receipts,
+                    count: results[0].count
+                });
             };
 
         start();
 
     });
+
     app.delete('/api/receipt/:id', function (req, res, next) {
         var start = function () {
                 return delete_receipt();
@@ -366,10 +479,15 @@ module.exports = function(app) {
                 }
 
                 if (!results.affectedRows) {
-                    return next({message: 'No receipts found on database.', err: 'SQL_ERROR'});
+                    return next({
+                        message: 'No receipts found on database.',
+                        err: 'SQL_ERROR'
+                    });
                 }
 
-                res.send({message : 'Receipt deleted successfully.'});
+                res.send({
+                    message: 'Receipt deleted successfully.'
+                });
             };
 
         start();
@@ -380,7 +498,7 @@ module.exports = function(app) {
 
     function getMaa(req, res, next) {
         var json = jsonfileservice.getJsonFromFile('/api/../../data/maa.json');
-        json[0].data.results.forEach(function(character) {
+        json[0].data.results.forEach(function (character) {
             var pos = character.name.indexOf('(MAA)');
             character.name = character.name.substr(0, pos - 1);
         });
@@ -390,3 +508,4 @@ module.exports = function(app) {
 
 
 };
+
