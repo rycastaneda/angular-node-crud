@@ -22,6 +22,7 @@
     "./vendor/bootstrap/dist/css/bootstrap.min.css",
     "./vendor/angular-growl-v2/build/angular-growl.min.css",
     "./vendor/angular-busy/dist/angular-busy.min.css",
+    "./vendor/animate.css/animate.min.css",
     "./vendor/font-awesome/css/font-awesome.min.css"
   ],
   "allcss": [

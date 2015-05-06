@@ -1,4 +1,4 @@
-<div class="home">
+<div class="home fadeIn">
     <div growl inline="true"></div>
 
     <div class="row searchbar">
@@ -18,7 +18,7 @@
             </form>
         </div>
         <div class="col-md-4">
-            <button class="pull-right btn btn-primary" ng-click="vm.open_receipt('add')">Add Record</button>
+            <receipt-viewer receipt="" mode="add" success="vm.get_receipts(vm.q, vm.report_category, vm.start_date, vm.end_date)"></receipt-viewer>
             <button class="btn btn-default" ng-click='vm.get_reports()'>Export to CSV</button>
         </div>
     </div>
@@ -45,7 +45,7 @@
         </div>
 
         <div class="col-xs-12">
-            <table cg-busy="vm.getting" class="table table-hover">
+            <table cg-busy="vm.getting" class="table table-hover receipts">
                 <th></th>
                 <th>ID</th>
                 <th>Name</th>
@@ -69,7 +69,8 @@
                     <td ng-bind="receipt.share_type"></td>
                     <td ng-bind="receipt.share_amount"></td>
                     <td>
-                        <button class="btn btn-default" ng-click="vm.open_receipt('update', receipt)">View</button>
+                        <!-- <button class="btn btn-default" ng-click="vm.open_receipt('update', receipt)">View</button> -->
+                        <receipt-viewer receipt="receipt" mode="update" success="vm.get_receipts(vm.q, vm.report_category, vm.start_date, vm.end_date)"></receipt-viewer>
                         <button class="btn btn-default" ng-click="vm.delete_receipt(receipt.id, $index)">Delete</button>
                     </td>
                 </tr>

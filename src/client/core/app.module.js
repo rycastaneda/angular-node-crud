@@ -7,6 +7,7 @@
             'angularMoment',
             'cgBusy',
             'angular-growl',
+            'ngAnimate',
             'ngFileUpload',
             'blocks',
             'fetchers',

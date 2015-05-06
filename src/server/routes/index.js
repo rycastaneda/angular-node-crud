@@ -6,8 +6,6 @@ mysql = require(__dirname + '/../lib/mysql'),
 module.exports = function (app) {
     app.get('/', function (req, res) {
         var index = (process.env.NODE_ENV === 'development') ? '-dev' : '';
-        console.log("index", index);
-        console.log("process.env.NODE_ENV", process.env.NODE_ENV);
 
         if (req.cookies && req.cookies.eg_user) {
             res.render('index' + index + '.jade', {
@@ -24,7 +22,6 @@ module.exports = function (app) {
     app.post('/login', function (req, res, next) {
         var data = util.get_data(['username', 'password'], ['stay'], req.body),
             start = function () {
-                console.log("data", data);
                 if (data.username && data.password) {
                     return check_user(data);
                 }
@@ -105,7 +102,6 @@ module.exports = function (app) {
             }
 
             if (result.length) {
-                console.log("result", result);
                 return next();
             }
 
@@ -118,7 +114,7 @@ module.exports = function (app) {
         }
     });
 
-    app.get('/api/user', function (req, res) {
+    app.get('/api/user', function (req, res, next) {
         var start = function () {
                 return mysql.open(config.DB)
                     .query('Select name, email from user where id = ?',
@@ -147,13 +143,11 @@ module.exports = function (app) {
                 'share_amount', 'user_id', 'reference_number', 'referrer'
             ], [], req.body),
             start = function () {
-                console.log("req.files", req.files);
 
 
                 return check_dups();
             },
             check_dups = function () {
-                console.log("check dups data", data);
                 return mysql.open(config.DB)
                     .query('SELECT id FROM receipt where date = ? and id != ?',
                         [data.date, req.params.id],
@@ -184,7 +178,6 @@ module.exports = function (app) {
                 else {
                     data.photo = req.files.file.name;
                 }
-                console.log("data", data);
 
                 return mysql.open(config.DB)
                     .query('UPDATE receipt SET ? WHERE id = ?', [data, req.params.id],
@@ -231,13 +224,11 @@ module.exports = function (app) {
             },
             save = function (err, result) {
                 if (err) {
-                    console.log("err1", err);
                     return next({
                         message: 'Receipt not saved. Please try again.',
                         err: 'SQL_ERROR'
                     });
                 }
-                console.log("result", result);
 
                 if (result.length) {
                     return next({
@@ -257,7 +248,6 @@ module.exports = function (app) {
             },
             done = function (err, result) {
                 if (err) {
-                    console.log("err2", err);
                     return next({
                         message: 'Receipt not saved. Please try again.',
                         err: 'SQL_ERROR'
@@ -275,7 +265,6 @@ module.exports = function (app) {
 
     app.get('/api/receipt/:id', function (req, res, next) {
         var start = function () {
-                console.log("req.params", req.params);
                 if (!req.params.id) {
                     return next({
                         message: 'No id found.',
@@ -323,7 +312,6 @@ module.exports = function (app) {
                         err: 'AUTH_REQUIRED'
                     });
                 }
-                console.log("getting receipts", data);
                 if (data.page) {
                     data.page = +data.page || 1;
                     data.limit = 25;
@@ -373,9 +361,6 @@ module.exports = function (app) {
                     params.push(data.limit);
                 }
 
-                console.log("query",query);
-                console.log("params",params);
-
                 return mysql.open(config.DB)
                     .query(query, params, get_total);
             },
@@ -411,9 +396,6 @@ module.exports = function (app) {
                     params.push(data.limit);
                 }
 
-                console.log("query",query);
-                console.log("params",params);
-
                 return mysql.open(config.DB)
                     .query(query, params, get_total);
             },
@@ -436,12 +418,9 @@ module.exports = function (app) {
                     return done(err, results);
                 }
 
-                console.log("receipts.length", receipts.length);
                 query = query.replace('*', 'count(*) as count').replace('LIMIT ?, ?', '');
                 params = params.splice(0, params.length - 2);
 
-                console.log("query",query);
-                console.log("params",params);
                 return mysql.open(config.DB)
                     .query(query, params, done);
 
@@ -451,7 +430,6 @@ module.exports = function (app) {
                 if (err) {
                     return next(err);
                 }
-                console.log("results", results);
                 res.send({
                     data: receipts,
                     count: results[0].count
@@ -493,19 +471,6 @@ module.exports = function (app) {
         start();
 
     });
-
-    app.get('/api/api/maa', getMaa);
-
-    function getMaa(req, res, next) {
-        var json = jsonfileservice.getJsonFromFile('/api/../../data/maa.json');
-        json[0].data.results.forEach(function (character) {
-            var pos = character.name.indexOf('(MAA)');
-            character.name = character.name.substr(0, pos - 1);
-        });
-        res.send(json);
-    }
-
-
 
 };
 
