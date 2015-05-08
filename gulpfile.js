@@ -200,8 +200,9 @@ var config      = require('./gulp.config.json'),
 
     function startBrowserSync() {
         browserSync({
+
             proxy: 'localhost:' + 3001,
-            // files: [config.client + '/**/*.*'],
+            files: [config.client + '/**/*.*'],
             ghostMode: { // these are the defaults t,f,t,t
                 clicks: true,
                 location: false,
