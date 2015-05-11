@@ -1,6 +1,5 @@
 var config = require(__dirname + '/../config/config')
 mysql = require(__dirname + '/../lib/mysql'),
-    Busboy = require('busboy'),
     util = require(__dirname + '/../helpers/util');
 
 module.exports = function (app) {
