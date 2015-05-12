@@ -1,5 +1,5 @@
 src/server/config/*
-node_modules/
-build/
-vendor/
-uploads/
+node_modules/*
+build/*
+vendor/*
+uploads/*

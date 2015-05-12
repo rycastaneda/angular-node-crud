@@ -189,7 +189,7 @@ var config      = require('./gulp.config.json'),
         }
 
         return nodemon(options)
-            // .on('start', startBrowserSync)
+            .on('start', startBrowserSync)
             //.on('change', tasks)
             .on('restart', function() {
                 setTimeout(function () {
@@ -200,17 +200,19 @@ var config      = require('./gulp.config.json'),
 
     function startBrowserSync() {
         browserSync({
-            proxy: 'localhost:' + 3001,
-            // files: [config.client + '/**/*.*'],
-            ghostMode: { // these are the defaults t,f,t,t
-                clicks: true,
-                location: false,
-                forms: true,
-                scroll: true
-            },
+
+            proxy: 'localhost:' + 3000,
+            files: [config.client + '/**/*.*'],
+            // ghostMode: { // these are the defaults t,f,t,t
+            //     clicks: true,
+            //     location: false,
+            //     forms: true,
+            //     scroll: true
+            // },
             logLevel: 'debug',
             logPrefix: 'gulp-patterns',
             notify: true,
+            port: 7000,
             reloadDelay: 1000
         });
     }
