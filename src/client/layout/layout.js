@@ -10,6 +10,7 @@
     function Shell($timeout, $rootScope, $state, userService, helpers) {
         /*jshint validthis: true */
         var vm = this;
+        vm.in = false;
         vm.showSplash = true;
         vm.show_growl = true;
         vm.user = userService.user;

@@ -9,13 +9,13 @@
                 LOGIN
             </span>
         </a>
-        <a class="btn navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <a class="btn navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" ng-click="vm.in = !vm.in">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </a>
     </div>
-    <div class="navbar-collapse collapse">
+    <div class="navbar-collapse collapse" ng-class="{'in' : vm.in}">
         <div class="pull-right navbar-logo">
             <ul class="nav navbar-nav pull-right">
                 <li class="dropdown dropdown-big" ng-if="vm.user">
