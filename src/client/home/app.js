@@ -36,9 +36,9 @@
         vm.receipts = [];
         vm.q = '';
         vm.report_category = 'date';
-        vm.max_date = date.format('YYYY-MM-DD');
         vm.start_date = date.format('YYYY-MM-DD');
         vm.end_date = date.add(1, 'days').format('YYYY-MM-DD');
+        vm.max_date = angular.copy(vm.end_date);
 
         vm.open_start = open_start;
         vm.open_end = open_end;
@@ -70,6 +70,7 @@
 
         function get_receipts(q, category, start_date, end_date) {
             vm.receipts = [];
+            console.log('q', q);
             vm.getting = receiptService.get_receipts({
                 q: q,
                 category: (category === 'All') ? '' : category.toLowerCase(),

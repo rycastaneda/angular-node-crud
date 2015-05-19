@@ -1,7 +1,7 @@
 var config = require(__dirname + '/../config/config')
 mysql = require(__dirname + '/../lib/mysql'),
     util = require(__dirname + '/../helpers/util');
-
+console.log('config', config);
 module.exports = function (app) {
     app.get('/', function (req, res) {
         var index = (process.env.NODE_ENV === 'development') ? '-dev' : '';
@@ -338,7 +338,7 @@ module.exports = function (app) {
 
                 switch (data.category) {
                     case 'date':
-                        where = ' WHERE date > ? AND date < ?';
+                        where = ' WHERE date BETWEEN ? AND ?';
                         params = [+new Date(data.start_date), +new Date(data.end_date), +req.cookies.eg_user];
                         break;
                     case 'share_type':
@@ -360,26 +360,31 @@ module.exports = function (app) {
                     params.push(data.limit);
                 }
 
+                console.log('query', query);
+                console.log('params', params);
+
                 return mysql.open(config.DB)
                     .query(query, params, get_total);
             },
 
             search_all = function () {
-                params = [+req.cookies.eg_user, data.q, data.q, data.q];
-
                 if (!data.q) {
                     return search_user_receipts();
                 }
 
                 data.q = '%' + data.q + '%';
+                params = [+req.cookies.eg_user, data.q, data.q, data.q];
 
-                query += ' WHERE user_id = ? AND(name like ? OR reference_number like ? OR referrer like ? ) ORDER BY id desc';
+                query += ' WHERE user_id = ? AND (name like ? OR reference_number like ? OR referrer like ? ) ORDER BY id desc';
 
                 if ( data.page) {
                     query += ' LIMIT ?, ?';
                     params.push((data.page - 1) * data.limit);
                     params.push(data.limit);
                 }
+
+                console.log('query', query);
+                console.log('params', params);
 
                 return mysql.open(config.DB)
                     .query(query, params, get_total);
