@@ -137,7 +137,7 @@ module.exports = function (app) {
 
     app.put('/api/receipt/:id', function (req, res, next) {
         var data = util.get_data([
-                'name', 'bank', 'amount',
+                'name', 'bank', 'amount', 'batch_number',
                 'reference_number', 'date', 'share_type',
                 'share_amount', 'user_id', 'reference_number', 'referrer'
             ], [], req.body),
@@ -200,7 +200,7 @@ module.exports = function (app) {
 
     app.post('/api/receipt', function (req, res, next) {
         var data = util.get_data([
-                'name', 'bank', 'amount',
+                'name', 'bank', 'amount', 'batch_number',
                 'reference_number', 'date', 'share_type',
                 'share_amount', 'user_id', 'reference_number', 'referrer'
             ], [], req.body),
@@ -302,7 +302,7 @@ module.exports = function (app) {
 
     app.get('/api/receipts', function (req, res, next) {
         var data = util.get_data([], ['q', 'category', 'page', 'start_date', 'end_date', 'id'], req.query),
-            valid_category = ['name', 'share_type', 'reference_number', 'referrer', 'id', 'date'],
+            valid_category = ['name', 'share_type', 'batch_number', 'reference_number', 'referrer', 'id', 'date'],
             query, params, receipts,
             start = function () {
                 if (!req.cookies.eg_user) {
@@ -339,9 +339,10 @@ module.exports = function (app) {
                 switch (data.category) {
                     case 'date':
                         where = ' WHERE date BETWEEN ? AND ?';
-                        params = [+new Date(data.start_date), +new Date(data.end_date), +req.cookies.eg_user];
+                        params = [+new Date(data.start_date + ' 00:00:00'), +new Date(data.end_date + ' 23:59:59'), +req.cookies.eg_user];
                         break;
                     case 'share_type':
+                    case 'batch_number':
                     case 'id':
                     case 'name':
                     case 'reference_number':

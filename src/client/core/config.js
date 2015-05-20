@@ -22,7 +22,8 @@
                 {label: 'Referrer', value: 'referrer'},
                 {label: 'Name', value: 'name'},
                 {label: 'ID', value: 'id'},
-                {label: 'Reference Number', value: 'reference_number'}
+                {label: 'Reference Number', value: 'reference_number'},
+                {label: 'Batch Number', value: 'batch_number'}
             ]
         };
     }

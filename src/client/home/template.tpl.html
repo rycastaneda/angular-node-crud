@@ -49,6 +49,7 @@
             <table cg-busy="vm.getting" class="table table-hover receipts">
                 <th></th>
                 <th>ID</th>
+                <th>Batch Number</th>
                 <th>Name</th>
                 <th>Bank</th>
                 <th>Amount</th>
@@ -61,6 +62,7 @@
                 <tr ng-repeat="receipt in vm.receipts">
                     <td><img ng-src="{{vm.config.uploads + receipt.photo}}" alt="" class="img-rounded" width="50" height="50px;"></td>
                     <td ng-bind="receipt.id"></td>
+                    <td ng-bind="receipt.batch_number"></td>
                     <td ng-bind="receipt.name"></td>
                     <td ng-bind="receipt.bank"></td>
                     <td ng-bind="receipt.amount"></td>
@@ -76,10 +78,10 @@
                     </td>
                 </tr>
                 <tr ng-show="!vm.receipts.length">
-                    <td class="text-center" colspan="10">No receipts found.</td>
+                    <td class="text-center" colspan="12">No receipts found.</td>
                 </tr>
                 <tr>
-                    <td colspan="11" class="text-center">
+                    <td colspan="12" class="text-center">
                         <pagination total-items="vm.count" items-per-page="25" ng-model="vm.current_page" ng-change="vm.get_receipts(vm.q, vm.filter.value, vm.start_date, vm.end_date)" num-pages=""></pagination>
                     </td>
                 </tr>

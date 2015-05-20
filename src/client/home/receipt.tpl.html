@@ -28,6 +28,12 @@
             </div>
         </div>
         <div class="form-group">
+            <label for="batch_number" class="control-label col-xs-2">Batch Number *</label>
+            <div class="col-xs-10">
+                <input type="text" class="form-control" id="batch_number" placeholder="Enter batch number" ng-model="data.batch_number" required="true">
+            </div>
+        </div>
+        <div class="form-group">
             <label for="share_type" class="control-label col-xs-2">Share Type *</label>
             <div class="col-xs-10">
                 <select class="form-control" ng-options="item as item for item in ['Solo', 'Fast Track', 'Patak Patak']" ng-change="share_changed()" ng-model="data.share_type"></select>
